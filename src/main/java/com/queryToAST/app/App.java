@@ -2,7 +2,7 @@ package com.queryToAST.app;
 
 /**
  * Hello world!
- * Hi 
+ * Hi :D
  */
 public class App 
 {
