@@ -11,5 +11,8 @@ package com.queryToAST.app.Core;
 public enum TypModifier {
     PUBLIC,
     PRIVATE,
-    PROTECTED
+    PROTECTED,
+    ABSTRACT,
+    INTERFACE,
+    NONE
 }

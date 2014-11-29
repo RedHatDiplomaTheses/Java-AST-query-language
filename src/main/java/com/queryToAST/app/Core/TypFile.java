@@ -14,5 +14,6 @@ public enum TypFile {
     VARIABLE,
     INTERFACE,
     ENUMERATION,
-    ANNOTATION
+    ANNOTATION,
+    NONE
 }

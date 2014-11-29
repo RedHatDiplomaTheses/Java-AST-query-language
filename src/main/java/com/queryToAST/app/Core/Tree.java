@@ -28,6 +28,23 @@ public class Tree<T> {
     public Node<T> addRootChild(T data) {
         return _root.addChild(data);
     }
+    
+    public String getChildren(Node<T> parent, String tab){
+        String out = parent.data.toString();
+        for(Node<T> node: parent.children){
+            out += "\n" + tab + getChildren(node,tab + "+---");
+        }
+        return out;
+    }
+    @Override
+    public String toString() {
+        String out;
+        out = "Tree: ";
+        out += getChildren(_root, "+-> ");
+        return out;
+    }
+    
+    
     public static class Node<T> {
         private T data;
         private Node<T> Parent;
@@ -45,7 +62,9 @@ public class Tree<T> {
         public Iterator<Node<T>> getChildren(){
             return this.children.iterator();
         }
-        
+        public <T> T getdata(){
+            return (T)this.data;
+        }
         public Node<T> remove(){
             for(Node<T> node : this.Parent.children){
                 if(this == node) {

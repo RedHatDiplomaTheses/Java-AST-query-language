@@ -5,7 +5,7 @@
 package com.queryToAST.app.AST;
 
 import com.queryToAST.app.Core.ProcessingData;
-import com.queryToAST.app.SettingQuery;
+import com.queryToAST.app.Setting;
 import com.strobel.assembler.InputTypeLoader;
 import com.strobel.assembler.metadata.DeobfuscationUtilities;
 import com.strobel.assembler.metadata.IMetadataResolver;
@@ -33,16 +33,16 @@ import java.io.OutputStreamWriter;
  *
  * @author Niriel
  */
-public class CreateClassAST extends ProcessingData{
+public class ClassAST extends ProcessingData{
     private CompilationUnit _unitAST = null;
     
-    public CreateClassAST(SettingQuery settings){
+    public ClassAST(Setting settings){
         super(settings);
         Build();
     }
     
-    public CreateClassAST(String internalName,String output){
-        super(new SettingQuery(internalName, output));
+    public ClassAST(String internalName,String output){
+        super(new Setting(internalName, output));
         Build();
     }  
     

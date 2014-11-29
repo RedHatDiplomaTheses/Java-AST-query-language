@@ -4,7 +4,7 @@
  */
 package com.queryToAST.app.Core;
 
-import com.queryToAST.app.SettingQuery;
+import com.queryToAST.app.Setting;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -17,7 +17,7 @@ public abstract class ProcessingData {
     protected String _internalName;
     protected String _outputFile;
     
-    public ProcessingData(SettingQuery settings) {
+    public ProcessingData(Setting settings) {
         _internalName = settings.getInternalName();
         _outputFile = settings.getOutput();
         this._outputVar = new OutputStream() {

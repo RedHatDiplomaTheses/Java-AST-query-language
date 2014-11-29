@@ -20,31 +20,48 @@ public class ParserMetadata {
     private String _input;
     ParserMetadata() {        
     }
+
     public Tree ParserMetadata(String input) {
         _input = input;
         findHead();
-        return null;
+        return _tree;
     }
     
     /**
      * Metadat uspoøádá do stromové struktury
      */
     public void findHead() {        
-        String pattern = "^((public |private |protected )?class .*)[^\n]";
+        String pattern = "^(class|@interface|enum|interface) ([^\n]*)";
         Pattern r = Pattern.compile(pattern);
         Matcher m = r.matcher(_input);
         
         Data data = null;  //poradnou inicializaci a ochranu TODO
-        
-        
+                
         if(m.find()){
-            Matcher name = Pattern.compile("class (.*)").matcher(m.group(0));
-            name.find();            
-            data = new Data(name.group(1), TypFile.CLASS);
+            TypFile typFile;
+            switch(m.group(1)) {                
+                case "@interface":  //Annotation
+                    typFile = TypFile.ANNOTATION;
+                    break;
+                case "enum":
+                    typFile = TypFile.ENUMERATION;
+                    break;
+                case "interface":
+                    typFile = TypFile.INTERFACE;
+                    break;
+                case "class":
+                    typFile = TypFile.CLASS;
+                    break;
+                default:
+                    typFile = TypFile.NONE;
+                    break;
+            }
+            
+            data = new Data(m.group(2), typFile);
             
             Matcher fleg = Pattern.compile("^    Flags: (.*)",Pattern.MULTILINE).matcher(_input);
             fleg.find();
-            fleg = Pattern.compile("(PUBLIC|PRIVATE|SUPER|FINAL|PROTECTED)").matcher(fleg.group(1));
+            fleg = Pattern.compile("(PUBLIC|PRIVATE|SUPER|FINAL|PROTECTED|ABSTRACT|INTERFACE)").matcher(fleg.group(1));
             while(fleg.find()){
                 switch (fleg.group(0)) {
                     case "PUBLIC":
@@ -61,33 +78,58 @@ public class ParserMetadata {
                         break;
                     case "PROTECTED":
                         data.setTypMod(TypModifier.PROTECTED);
+                        break;                    
+                    case "ABSTRACT":
+                        data.setIsabstract(true);
                         break;
                 }            
             }
         } else {
-            System.out.println("Nenalezeno");
+            System.out.println("Nepodarilo se rozparsovat Parser Metadata");
+        }
+         
+        pattern = "//  " + data.getName() + "\n[^\n]*//  ([^\n]*)\n((?:[^\n]*//  (?:[^\n]*)\n)*)";
+        r = Pattern.compile(pattern, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+        m = r.matcher(_input);
+        
+        // find extends and implements
+        if(m.find()){
+            data.setExtends(m.group(1));
+            if(m.group(2) != null){
+                pattern = "//  ([^\n]*)";
+                r = Pattern.compile(pattern, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+                m = r.matcher(m.group(2));
+                
+                //implements
+                while(m.find()){
+                    data.setImplements(m.group(1));
+                }                
+            }
         }
         
-        _tree = new Tree<Data>(data);
-        
+        _tree = new Tree<Data>(data);                
         pattern = "^    (?:(public|protected|private) )?(static )?(final )?(\\S.*) (.*)\\((.*)\\)";
         r = Pattern.compile(pattern, Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
         m = r.matcher(_input);
         while(m.find()){
+            
             Data child = new Data(m.group(2) != null ? true : false,
                     m.group(3) != null ? true : false,
-                    m.group(5), m.group(6));
-            switch (m.group(1)) {
-                    case "PUBLIC":
-                        child.setTypMod(TypModifier.PUBLIC);
-                        break;
-                    case "PRIVATE":
-                        child.setTypMod(TypModifier.PRIVATE);
-                        break;
-                    case "PROTECTED":
-                        child.setTypMod(TypModifier.PROTECTED);
-                        break;
-                }
+                    m.group(4), m.group(5));            
+            child.setTypFile(TypFile.METODA);
+            
+            if(m.group(1) != null)
+                switch (m.group(1)) {
+                        case "public":
+                            child.setTypMod(TypModifier.PUBLIC);
+                            break;
+                        case "private":
+                            child.setTypMod(TypModifier.PRIVATE);
+                            break;
+                        case "protected":
+                            child.setTypMod(TypModifier.PROTECTED);
+                            break;
+                    }
             _tree.addRootChild(child);
         }
     }

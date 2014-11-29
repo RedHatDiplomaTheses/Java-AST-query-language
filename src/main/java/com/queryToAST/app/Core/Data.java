@@ -17,25 +17,43 @@ public class Data {
     private boolean _isFinal = false;
     private boolean _isStatic = false;
     private boolean _isSuper = false;
-    private boolean _isabstract = false;    
-    private boolean _isSynchronized = false;
-    private boolean _isVolatile = false;
-    private TypFile _typFile = null;
-    private String _name = null;
-    private String _retVal = null;
-    private TypModifier _typMod = null;
-    private List<Arg> _arguments = null;
+    private boolean _isabstract = false;
+    private boolean _isSynchronized = false;    // variable is Synchronized
+    private boolean _isVolatile = false;        // variable is Volatile
+    private TypFile _typFile = null;            // typ Class | Enum | Annotation | ...
+    private String _name = null;                // name class | method | ...
+    private String _retVal = null;              //return
+    private String _extends = null;             //Abstract
+    private List<String> _implements = null;    //Interface
+    private TypModifier _typMod = null;         // public | private | protected
+    private List<Arg> _arguments = null;        // Arg {[Name , value], ...}
     
+    /**
+     * Constructor for file
+     * @param name
+     * @param typFile
+     */
     public Data(String name, TypFile typFile){
         _name = name;
         _typFile = typFile;
     }
 
+    /**
+     * Constructor for Mehtod
+     * @param isStatic
+     * @param isFinal
+     * @param retVal
+     * @param name
+     */
     public Data(boolean isStatic, boolean isFinal, String retVal, String name) {        
         _isStatic = isStatic;
         _isFinal = isFinal;
         _retVal = retVal;
         _name = name;        
+    }
+
+    public void setRetVal(String _retVal) {
+        this._retVal = _retVal;
     }
 
     public String getRetVal() {
@@ -44,6 +62,24 @@ public class Data {
     
     public String getName() {
         return _name;
+    }
+
+    public String getExtends() {
+        return _extends;
+    }
+
+    public void setExtends(String _extends) {
+        this._extends = _extends;
+    }
+
+    public List<String> getImplements() {
+        return _implements;
+    }
+
+    public void setImplements(String _implement) {
+        if(this._implements == null)
+            this._implements = new ArrayList<String>();
+        this._implements.add(_implement);
     }
     
     /**
@@ -60,6 +96,10 @@ public class Data {
             _arguments = new ArrayList<Arg>();
         
         _arguments.add(arg);
+    }
+
+    public void setTypFile(TypFile _typFile) {
+        this._typFile = _typFile;
     }
     
     
@@ -135,7 +175,49 @@ public class Data {
 
     @Override
     public String toString() {
-        return "Data{" + "_isFinal=" + _isFinal + ", _isStatic=" + _isStatic + ", _isSuper=" + _isSuper + ", _isabstract=" + _isabstract + ", _isSynchronized=" + _isSynchronized + ", _isVolatile=" + _isVolatile + ", _typFile=" + _typFile + ", _name=" + _name + ", _typMod=" + _typMod + ", _arguments=" + _arguments + '}';
+        String out = "";
+        if(_typMod != null)
+            switch(_typMod) {
+                case PUBLIC:
+                    out += "public ";
+                    break;
+                case PRIVATE:
+                    out += "private ";
+                    break;
+                case PROTECTED:
+                    out += "protected ";
+                    break;
+        }
+        
+        out += _isFinal ? "final " : "";
+        out += _isStatic ? "static " : "";
+        out += _isabstract ? "abstract " : "";
+        
+        switch(_typFile) {
+            case CLASS:
+                out += "class ";
+            case METODA:
+                out += "";
+                break;
+            case ANNOTATION:
+                out += "@interface ";
+            case ENUMERATION:
+                out += "enum ";
+            case INTERFACE:
+                out += "interface ";
+        }
+        out += _retVal != null ? _retVal + " ": "";
+        out += _name;
+        
+        if(this._extends != null)
+            out += " extends " + _extends;
+        
+        if(this._implements != null){
+            out += " implements";
+            for(String s : this._implements)
+                out += " " + s;
+        }        
+        return out;
     }
     
 }
