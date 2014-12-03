@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 public class ParserMetadata {
     private Tree _tree;
     private String _input;
+    
     ParserMetadata() {        
     }
 
@@ -57,7 +58,7 @@ public class ParserMetadata {
                     break;
             }
             
-            data = new Data(m.group(2), typFile);
+            data = new Data(m.group(2), typFile);//m.group(2).replaceAll("[^\\.]*\\.", "")
             
             Matcher fleg = Pattern.compile("^    Flags: (.*)",Pattern.MULTILINE).matcher(_input);
             fleg.find();

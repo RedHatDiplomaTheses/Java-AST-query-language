@@ -29,7 +29,7 @@ public class Tree<T> {
         return _root.addChild(data);
     }
     
-    public String getChildren(Node<T> parent, String tab){
+    private String getChildren(Node<T> parent, String tab){
         String out = parent.data.toString();
         for(Node<T> node: parent.children){
             out += "\n" + tab + getChildren(node,tab + "+---");
@@ -59,9 +59,10 @@ public class Tree<T> {
             return node;
         }
         
-        public Iterator<Node<T>> getChildren(){
-            return this.children.iterator();
+        public List<Node<T>> getChildren(){
+            return this.children;
         }
+        
         public <T> T getdata(){
             return (T)this.data;
         }

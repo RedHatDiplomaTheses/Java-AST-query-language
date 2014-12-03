@@ -38,20 +38,14 @@ public class ClassAST extends ProcessingData{
     
     public ClassAST(Setting settings){
         super(settings);
-        Build();
+        Build(settings.getSettings());
     }
-    
-    public ClassAST(String internalName,String output){
-        super(new Setting(internalName, output));
-        Build();
-    }  
     
     public CompilationUnit getUnitAST() {
         return _unitAST;
     }
     
-    private void Build(){
-        final DecompilerSettings settings = DecompilerSettings.javaDefaults();                      
+    private void Build(DecompilerSettings settings){        
         
         if(_outputFile == null) {
             try (final OutputStreamWriter writer = new OutputStreamWriter(_outputVar)) {            
