@@ -34,87 +34,84 @@ import java.util.regex.Pattern;
 public class JarGraph {
     private Setting _settings = null;
     
-    public JarGraph(String _internalName, boolean ast, boolean mData) {        
+    public JarGraph(String _internalName, boolean isAst, boolean isMetadata) {        
         _settings = new Setting(_internalName,null);
-        _settings.setAst(ast);
-        _settings.setMetadata(mData);
+        _settings.setAst(isAst);
+        _settings.setMetadata(isMetadata);
     }
     
-    public JarGraph(String _internalName, String _output, boolean ast, boolean mData) {
+    
+    
+    /**
+     *
+     * @param _internalName cesta k souboru
+     * @param _output vystupni soubor pri dekompilaci
+     * @param isAst Udelat graf z AST
+     * @param isMetadata Udelat graf z Metadat
+     */
+    public JarGraph(String _internalName, String _output, boolean isAst, boolean isMetadata) {
         _settings = new Setting(_internalName,_output);
-        _settings.setAst(ast);
-        _settings.setMetadata(mData);
+        _settings.setAst(isAst);
+        _settings.setMetadata(isMetadata);
     }
     
+    
+    
+    /**
+     *
+     * @return
+     * @throws IOException
+     */
     public Graph Factory() throws IOException {
-        Graph graph = new TinkerGraph();
-        Vertex j = graph.addVertex(null);
-        j.setProperty("Name",getNameJar());
-        j.setProperty("Typ","Jar");
-                
         DecompilerSettings settings = DecompilerSettings.javaDefaults();
-        settings.setLanguage(Languages.bytecode());
-        
+        settings.setLanguage(Languages.bytecode()); //Zkontrolovat nasteveni jazyka AST Metadata        
         final File jarFile = new File(this._settings.getInternalName());
-
         if (!jarFile.exists()) {
             System.out.println("File not found: " + this._settings.getInternalName());
         }
         final JarFile jar = new JarFile(jarFile);
-        final Enumeration<JarEntry> entries = jar.entries();
-        
+        final Enumeration<JarEntry> entries = jar.entries();        
         settings.setShowSyntheticMembers(false);
-
         settings.setTypeLoader(           
                 new JarTypeLoader(jar)                            
-        );
-        
+        );        
         this._settings.setSettings(settings);
+        
+        
+        Graph graph = new TinkerGraph();
+        Vertex j = graph.addVertex(null);        
+        j.setProperty("Name",getNameJar());
+        j.setProperty("Typ","Jar");        
+        ClassVertex classVertex = new ClassVertex();
         
         try {                        
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
                 final String name = entry.getName();
-
                 if (!name.endsWith(".class")) {
                     continue;
-                }                
+                }
                 final String internalName = StringUtilities.removeRight(name, ".class");
-                
                 this._settings.setInternalName(internalName);
                 
-                //decompilace->ziskani metadat->graf tøídy (AST or BCEL)
-                ClassVertex classVertex = new ClassVertex(_settings);
+                
                 Vertex a = null;
                 if(this._settings.isMetadata())                    
-                    a = classVertex.getVertexMeta(graph);
+                    a = classVertex.getVertexMeta(graph, _settings);
                 if(this._settings.isAst())
-                    a = classVertex.getVertexMeta(graph);
+                    a = classVertex.getVertexMeta(graph, _settings);
+                
                 //zapis vztahu tridy do Grafu
                 graph.addEdge(null, setPathPackages(graph, j, internalName), a, "contain");
             }
         }
         finally {
-         System.out.println("Doplnit hlaseni pøekladu JarGraph");
-        }
-        
-//  Vypis vsech vrcholu        
-//        for(Vertex v: graph.getVertices()) {
-//            System.out.println(v.getProperty("Name"));
-//        }
-
-//  Vypis trid druhé urovne        
-//        GremlinPipeline<Vertex,Vertex> pipe = new GremlinPipeline();       
-//        
-//        for(Vertex v :pipe.start(j).out("contain").toList()) {         
-//            GremlinPipeline<Vertex,Vertex> pipe2 = new GremlinPipeline();
-//            for(Vertex v2:pipe2.start(v).out("contain").toList()) {
-//               System.out.println(v2.getProperty("Name").toString().replaceFirst("[^\\.]*\\.", ""));
-//            }
-//        }
-        testGraph();
+         //System.out.println("Doplnit hlaseni pøekladu JarGraph");
+        }        
         return null;
     }
+
+    
     
     private String getNameJar() {
         Pattern reg = Pattern.compile("([^\\\\\\./]*).jar$");
@@ -123,14 +120,16 @@ public class JarGraph {
         return m.group(1);
     }
     
+    
+    
     /**
      * Vrátí Vrchol na který se nová tøída pøipojí
-     * @param g
-     * @param J
+     * @param g Graph
+     * @param J Vertex
      * @param internalName
      * @return
      */
-    public Vertex setPathPackages(Graph g, Vertex j, String internalName){
+    private Vertex setPathPackages(Graph g, Vertex j, String internalName){
         if(internalName.contains("/")){            
             String NamePack = internalName.replaceFirst("/.*", "");             
             internalName = internalName.replaceFirst("[^/]*/", "");
@@ -140,15 +139,18 @@ public class JarGraph {
                      return setPathPackages(g, v, internalName);                     
                  }
             }
-            System.out.println(":D");
+            //System.out.println(NamePack);
             Vertex r = g.addVertex(null);
             r.setProperty("Name", NamePack);
             r.setProperty("Typ", "Package");
             g.addEdge(null, j, r, "contain");
             return setPathPackages(g, r, internalName);
         }
+        //System.out.println(j.getProperty("Name") + " --> " + internalName);
         return j;
     }
+    
+    
     
     private Graph testGraph() {
         Graph g = new TinkerGraph();
