@@ -17,5 +17,7 @@ public class App
         internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
         JarGraph jar = new JarGraph(internalName, false, true);
         jar.Factory();
+        
+        
     }
 }

@@ -22,9 +22,10 @@ public class Data {
     private boolean _isVolatile = false;        // variable is Volatile
     private TypFile _typFile = null;            // typ Class | Enum | Annotation | ...
     private String _name = null;                // name class | method | ...
-    private String _retVal = null;              //return
-    private String _extends = null;             //Abstract
-    private List<String> _implements = null;    //Interface
+    private String _retVal = null;              // return
+    private String _extends = null;             // Abstract
+    private List<String> _implements = null;    // Interface
+    private List<String> _callMethod = null;    // Methody ktera dana methoda vola
     private TypModifier _typMod = null;         // public | private | protected
     private List<Arg> _arguments = null;        // Arg {[Name , value], ...}
     
@@ -80,6 +81,16 @@ public class Data {
         if(this._implements == null)
             this._implements = new ArrayList<String>();
         this._implements.add(_implement);
+    }
+    
+    public List<String> getCallMethod() {
+        return _callMethod;
+    }
+
+    public void setCallMethod(String _callMethod) {
+        if(this._callMethod == null)
+            this._callMethod = new ArrayList<String>();
+        this._callMethod.add(_callMethod);
     }
     
     /**
@@ -153,8 +164,8 @@ public class Data {
     }
     
     public static class Arg {
-        private String _datatyp;
-        private String _name;
+        public String _datatyp;
+        public String _name;
     }
     
     public void setTypMod(TypModifier _typMod) {

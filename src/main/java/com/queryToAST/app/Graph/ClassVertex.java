@@ -13,35 +13,53 @@ import com.queryToAST.app.Metadata.ClassMetadata;
 import com.queryToAST.app.Setting;
 import com.strobel.decompiler.languages.java.ast.AstNode;
 import com.strobel.decompiler.languages.java.ast.CompilationUnit;
+import com.tinkerpop.blueprints.Direction;
 
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 /**
  *
  * @author Niriel
  */
 public class ClassVertex {        
-    private Setting _settings = null;
     
-    public ClassVertex(Setting settings) {
-        this._settings = settings;
-    }
     
-    public Vertex getVertexMeta(Graph graph) {
-        ClassMetadata meta = new ClassMetadata(_settings);   //Strom Metadat
-//        System.out.println(meta.getOut());
-//        System.out.println();
+    
+    public ClassVertex() { }
+    
+    
+    
+    /**
+     *
+     * @param graph
+     * @param _settings
+     * @return
+     */
+    public Vertex getVertexMeta(Graph graph,Setting _settings) {
+        ClassMetadata meta = new ClassMetadata(_settings);
         return factory(meta.getTree(), graph);        
     }
     
-    public Vertex getVertexAST(Graph graph) {
-        return factory(new ClassAST(_settings).getUnitAST(), graph); //Strom AST
+    
+    
+    /**
+     *
+     * @param graph
+     * @param _settings
+     * @return
+     */
+    public Vertex getVertexAST(Graph graph, Setting _settings) {
+        return factory(new ClassAST(_settings).getUnitAST(), graph);
     }
+    
+    
     
     private Vertex factory(Tree tree, Graph graph) {
         Data data = ((Data)tree.getRoot().getdata());
-        Vertex a = FindVertex(graph,data.getName());    //.replaceAll("[^\\.]*\\.", "")        
+        Vertex a = FindVertex(graph,data.getName());    //.replaceAll("[^\\.]*\\.", "")
         a.setProperty("Typ",data.getTypFile());
                 
         if(data.getExtends() != null) {
@@ -59,22 +77,31 @@ public class ClassVertex {
         
         for(Object node : tree.getRoot().getChildren()) {
             Data dataN = (Data)((Node)node).getdata();
-            Vertex b = graph.addVertex(null);
-            b.setProperty("Name",dataN.getName());
+                        
+            Vertex b = FindVertexMethod(graph, data.getName(), dataN.getName());                    
             b.setProperty("Typ",dataN.getName());
-            graph.addEdge(null, a, b, "contain");
-        }                
+            if(dataN.getCallMethod() != null){
+                for(String sTMP: dataN.getCallMethod()) {                    
+                    Matcher mTMP = Pattern.compile("([^\\.]*)\\.([^:]*):\\(([^\\)]*)\\)([^;]*);?").matcher(sTMP);
+                    if(mTMP.find()){
+                        FindVertexMethod(graph,mTMP.group(1),mTMP.group(2));
+                        //System.out.println("Trida: "+mTMP.group(1)+ ", Metoda: " + mTMP.group(2) + ", Argumenty: " + mTMP.group(3) + ", Return: " + mTMP.group(4));
+                    }
+                    //System.out.println(sTMP);
+                }
+            }
+        }
         return a;
     }
+    
+    
     
     private Vertex factory(CompilationUnit unitAST, Graph graph) {
             int i=0;    
             for(AstNode n :unitAST.getChildren()){
-                    
                     int l=0;
                     for(AstNode p :n.getChildren()){
                         System.out.println(p.getNodeType() + " " +" " + p.getRole() + " " + p.getText());
-                        
                         //System.out.println(p.getNodeType() + " " + p.getText());
                         if(l++>10)
                             break;
@@ -83,6 +110,8 @@ public class ClassVertex {
         return null;          
     }
     
+    
+    
     /**
      * Najdi vertex, pokud nenajde vytvoø vertex
      * @param g
@@ -90,14 +119,42 @@ public class ClassVertex {
      * @return
      */
     public Vertex FindVertex(Graph g,String name) {
+        //System.out.println(name);
         for(Vertex v:g.getVertices()) {
-            if(v.getProperty("Name") == name) {
-                return v;
+            if(v.getProperty("Name").toString().compareTo(name) == 0) {
+                //System.out.println(name);
+                return v;                
             }
         }
         Vertex n = g.addVertex(null);
         n.setProperty("Name",name);
         n.setProperty("Typ",TypFile.NONE);
+        //System.out.println(name);
+        return n;
+    }
+    
+    
+    
+    /**
+     * Najdi vertex metody tridy, nebo ho vytvor
+     * @param g
+     * @param _class
+     * @param _method
+     * @return
+     */
+    public Vertex FindVertexMethod(Graph g, String _class, String _method){
+        Vertex v = FindVertex(g, _class);
+        for(Vertex vTMP: v.getVertices(Direction.OUT, "contain")) {
+            if(vTMP.getProperty("Name").toString().compareTo(_method) == 0) {
+                //System.out.println(_method);
+                return vTMP;
+            }
+        }
+        Vertex n = g.addVertex(null);
+        n.setProperty("Name",_method);
+        n.setProperty("Typ",TypFile.NONE);
+        g.addEdge(null, v, n, "contain");
+        //System.out.println(_class +" -> "+ _method);
         return n;
     }
 }
