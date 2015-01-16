@@ -1,6 +1,7 @@
 package com.queryToAST.app;
 
 import com.queryToAST.app.Graph.JarGraph;
+import com.queryToAST.app.QueryLanguage.Query;
 import com.tinkerpop.blueprints.Graph;
 
 
@@ -15,9 +16,10 @@ public class App
     {        
         String internalName = "C:\\Users\\Niriel\\Documents\\BP\\decompiler.jar";
         internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
-        JarGraph jar = new JarGraph(internalName, false, true);
-        jar.Factory();
+//        JarGraph jar = new JarGraph(internalName, false, true);
+//        jar.Factory();
         
-        
+        String query = "test (name=C)";
+         Query q = new Query(internalName,query);
     }
 }

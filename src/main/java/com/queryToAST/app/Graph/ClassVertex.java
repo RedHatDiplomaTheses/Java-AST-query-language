@@ -60,7 +60,7 @@ public class ClassVertex {
     private Vertex factory(Tree tree, Graph graph) {
         Data data = ((Data)tree.getRoot().getdata());
         Vertex a = FindVertex(graph,data.getName());    //.replaceAll("[^\\.]*\\.", "")
-        a.setProperty("Typ",data.getTypFile());
+        a.setProperty("typ",data.getTypFile());
                 
         if(data.getExtends() != null) {
             Vertex e = FindVertex(graph,data.getExtends());
@@ -79,7 +79,7 @@ public class ClassVertex {
             Data dataN = (Data)((Node)node).getdata();
                         
             Vertex b = FindVertexMethod(graph, data.getName(), dataN.getName());                    
-            b.setProperty("Typ",dataN.getName());
+            b.setProperty("typ",dataN.getName());
             if(dataN.getCallMethod() != null){
                 for(String sTMP: dataN.getCallMethod()) {                    
                     Matcher mTMP = Pattern.compile("([^\\.]*)\\.([^:]*):\\(([^\\)]*)\\)([^;]*);?").matcher(sTMP);
@@ -121,14 +121,14 @@ public class ClassVertex {
     public Vertex FindVertex(Graph g,String name) {
         //System.out.println(name);
         for(Vertex v:g.getVertices()) {
-            if(v.getProperty("Name").toString().compareTo(name) == 0) {
+            if(v.getProperty("name").toString().compareTo(name) == 0) {
                 //System.out.println(name);
                 return v;                
             }
         }
         Vertex n = g.addVertex(null);
-        n.setProperty("Name",name);
-        n.setProperty("Typ",TypFile.NONE);
+        n.setProperty("name",name);
+        n.setProperty("typ",TypFile.NONE);
         //System.out.println(name);
         return n;
     }
@@ -145,14 +145,14 @@ public class ClassVertex {
     public Vertex FindVertexMethod(Graph g, String _class, String _method){
         Vertex v = FindVertex(g, _class);
         for(Vertex vTMP: v.getVertices(Direction.OUT, "contain")) {
-            if(vTMP.getProperty("Name").toString().compareTo(_method) == 0) {
+            if(vTMP.getProperty("name").toString().compareTo(_method) == 0) {
                 //System.out.println(_method);
                 return vTMP;
             }
         }
         Vertex n = g.addVertex(null);
-        n.setProperty("Name",_method);
-        n.setProperty("Typ",TypFile.NONE);
+        n.setProperty("name",_method);
+        n.setProperty("typ",TypFile.NONE);
         g.addEdge(null, v, n, "contain");
         //System.out.println(_class +" -> "+ _method);
         return n;

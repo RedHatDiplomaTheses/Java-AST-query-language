@@ -80,8 +80,8 @@ public class JarGraph {
         
         Graph graph = new TinkerGraph();
         Vertex j = graph.addVertex(null);        
-        j.setProperty("Name",getNameJar());
-        j.setProperty("Typ","Jar");        
+        j.setProperty("name",getNameJar());
+        j.setProperty("typ","Jar");        
         ClassVertex classVertex = new ClassVertex();
         
         try {                        
@@ -107,8 +107,14 @@ public class JarGraph {
         }
         finally {
          //System.out.println("Doplnit hlaseni pøekladu JarGraph");
-        }        
-        return null;
+        }
+        
+        //odstranìní pøebyteèných dat pro optimalizace by chtelo predejít tomuto
+        for(Vertex x: graph.getVertices()){            
+            x.setProperty("name", x.getProperty("name").toString().replaceAll("[\\w]*/", ""));
+            //System.out.println(x.getProperty("name"));
+        }
+        return graph;
     }
 
     
@@ -135,14 +141,14 @@ public class JarGraph {
             internalName = internalName.replaceFirst("[^/]*/", "");
             GremlinPipeline<Vertex,Vertex> pipe = new GremlinPipeline();
             for(Vertex  v : pipe.start(j).out("contain").toList()) {
-                if(v.getProperty("Name").equals(NamePack)){                    
+                if(v.getProperty("name").equals(NamePack)){                    
                      return setPathPackages(g, v, internalName);                     
                  }
             }
             //System.out.println(NamePack);
             Vertex r = g.addVertex(null);
-            r.setProperty("Name", NamePack);
-            r.setProperty("Typ", "Package");
+            r.setProperty("name", NamePack);
+            r.setProperty("typ", "package");
             g.addEdge(null, j, r, "contain");
             return setPathPackages(g, r, internalName);
         }
@@ -156,37 +162,37 @@ public class JarGraph {
         Graph g = new TinkerGraph();
         
         Vertex a = g.addVertex(null);
-        a.setProperty("Name","Procyon");
-        a.setProperty("Typ","Jar");
+        a.setProperty("name","Procyon");
+        a.setProperty("typ","jar");
         
             Vertex b = g.addVertex(null);
-            b.setProperty("Name","CompileTools");
-            b.setProperty("Typ","Package");
+            b.setProperty("name","CompileTools");
+            b.setProperty("typ","package");
             Edge e = g.addEdge(null, a, b, "contain");
             
                 Vertex c = g.addVertex(null);
-                c.setProperty("Name", "Decompile");
-                c.setProperty("Typ", "Class");
+                c.setProperty("name", "Decompile");
+                c.setProperty("typ", "class");
                 e = g.addEdge(null, b, c, "contain");
                 
                 c = g.addVertex(null);
-                c.setProperty("Name", "Asemble");
-                c.setProperty("Typ", "Class");
+                c.setProperty("name", "Asemble");
+                c.setProperty("typ", "class");
                 e = g.addEdge(null, b, c, "contain");
                 
             b = g.addVertex(null);
-            b.setProperty("Name","Decompile");
-            b.setProperty("Typ","Package");
+            b.setProperty("name","Decompile");
+            b.setProperty("typ","Package");
             e = g.addEdge(null, a, b, "contain");
                 
                 c = g.addVertex(null);
-                c.setProperty("Name", "DecompileDriver");
-                c.setProperty("Typ", "Class");
+                c.setProperty("name", "DecompileDriver");
+                c.setProperty("typ", "class");
                 e = g.addEdge(null, b, c, "contain");
                 
                 c = g.addVertex(null);
-                c.setProperty("Name", "ParserMetadata");
-                c.setProperty("Typ", "Class");
+                c.setProperty("name", "ParserMetadata");
+                c.setProperty("typ", "class");
                 e = g.addEdge(null, b, c, "contain");
         GremlinPipeline<Vertex,Vertex> pipe = new GremlinPipeline();
         
