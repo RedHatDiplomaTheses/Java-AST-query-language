@@ -26,6 +26,7 @@ public class ClassMetadata extends ProcessingData{
         Build(settings.getSettings());
         ParserMetadata parserMetadata = new ParserMetadata();
         _tree = parserMetadata.ParserMetadata(getOut());
+        //System.out.println(getOut());
     }    
     
     public Tree getTree(){

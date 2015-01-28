@@ -19,7 +19,7 @@ public class App
 //        JarGraph jar = new JarGraph(internalName, false, true);
 //        jar.Factory();
         
-        String query = "test (name=C)";
+        String query = "* import(name=C).extend.callmethod";
          Query q = new Query(internalName,query);
     }
 }

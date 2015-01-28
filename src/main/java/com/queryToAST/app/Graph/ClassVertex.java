@@ -6,6 +6,7 @@ package com.queryToAST.app.Graph;
 
 import com.queryToAST.app.AST.ClassAST;
 import com.queryToAST.app.Core.Data;
+import com.queryToAST.app.Core.Data.Arg;
 import com.queryToAST.app.Core.Tree;
 import com.queryToAST.app.Core.Tree.Node;
 import com.queryToAST.app.Core.TypFile;
@@ -18,6 +19,8 @@ import com.tinkerpop.blueprints.Direction;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 /**
@@ -61,7 +64,9 @@ public class ClassVertex {
         Data data = ((Data)tree.getRoot().getdata());
         Vertex a = FindVertex(graph,data.getName());    //.replaceAll("[^\\.]*\\.", "")
         a.setProperty("typ",data.getTypFile());
-                
+        if(data.getAnnotated() != null){
+            a.setProperty("annotation", data.getAnnotated());
+        }
         if(data.getExtends() != null) {
             Vertex e = FindVertex(graph,data.getExtends());
             graph.addEdge(null, a, e, "extend");
@@ -78,13 +83,18 @@ public class ClassVertex {
         for(Object node : tree.getRoot().getChildren()) {
             Data dataN = (Data)((Node)node).getdata();
                         
-            Vertex b = FindVertexMethod(graph, data.getName(), dataN.getName());                    
-            b.setProperty("typ",dataN.getName());
+            Vertex b = FindVertexMethod(graph, data.getName(), dataN.getName());
             if(dataN.getCallMethod() != null){
-                for(String sTMP: dataN.getCallMethod()) {                    
+                for(String sTMP: dataN.getCallMethod()) {
                     Matcher mTMP = Pattern.compile("([^\\.]*)\\.([^:]*):\\(([^\\)]*)\\)([^;]*);?").matcher(sTMP);
                     if(mTMP.find()){
-                        FindVertexMethod(graph,mTMP.group(1),mTMP.group(2));
+                        //dodelat
+                        //System.out.println(mTMP.group(3));
+                        if(mTMP.group(3).compareTo("") != 0){
+                            List<Arg> arg=new ArrayList<Arg>();
+                            arg.add(null);
+                        }
+                        graph.addEdge(null, b, FindVertexMethod(graph,mTMP.group(1),mTMP.group(2)), "call");
                         //System.out.println("Trida: "+mTMP.group(1)+ ", Metoda: " + mTMP.group(2) + ", Argumenty: " + mTMP.group(3) + ", Return: " + mTMP.group(4));
                     }
                     //System.out.println(sTMP);
@@ -152,7 +162,7 @@ public class ClassVertex {
         }
         Vertex n = g.addVertex(null);
         n.setProperty("name",_method);
-        n.setProperty("typ",TypFile.NONE);
+        n.setProperty("typ",TypFile.METODA);
         g.addEdge(null, v, n, "contain");
         //System.out.println(_class +" -> "+ _method);
         return n;
