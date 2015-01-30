@@ -24,6 +24,7 @@ public class Data {
     private String _name = null;                // name class | method | ...
     private String _retVal = null;              // return
     private String _extends = null;             // Abstract
+    private List<String> _import=null;
     private List<String> _implements = null;    // Interface
     private List<String> _callMethod = null;    // Methody ktera dana methoda vola
     private TypModifier _typMod = null;         // public | private | protected
@@ -100,6 +101,20 @@ public class Data {
         if(this._implements == null)
             this._implements = new ArrayList<String>();
         this._implements.add(_implement);
+    }
+    
+    
+    
+    public List<String> getImport(){
+        return _import;
+    }
+    
+    
+    
+    public void addImport(String _import){
+        if(this._import == null)
+            this._import = new ArrayList<String>();        
+        this._import.add(_import);
     }
     
     

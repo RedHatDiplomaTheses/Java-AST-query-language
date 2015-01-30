@@ -233,6 +233,7 @@ public class ParserMetadata {
             Matcher mImp = Pattern.compile("\"L([\\w\\d-_/]+);\"$").matcher(mLine.group(0));
             if(mImp.find()){
                 if(data.getName().compareTo(mImp.group(1))!= 0){
+                    data.addImport(mImp.group(1));
                     //System.out.println(mImp.group(1));
                 }
             }

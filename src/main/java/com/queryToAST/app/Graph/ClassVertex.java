@@ -61,12 +61,15 @@ public class ClassVertex {
     
     
     private Vertex factory(Tree tree, Graph graph) {
+        
         Data data = ((Data)tree.getRoot().getdata());
         Vertex a = FindVertex(graph,data.getName());    //.replaceAll("[^\\.]*\\.", "")
         a.setProperty("typ",data.getTypFile());
+        
         if(data.getAnnotated() != null){
             a.setProperty("annotation", data.getAnnotated());
         }
+        
         if(data.getExtends() != null) {
             Vertex e = FindVertex(graph,data.getExtends());
             graph.addEdge(null, a, e, "extend");
@@ -77,6 +80,14 @@ public class ClassVertex {
             for(String imple: data.getImplements()){
                 i = FindVertex(graph,imple);
                 graph.addEdge(null, a, i, "implement");
+            }
+        }
+        
+        if(data.getImport() != null){
+            Vertex i;
+            for(String _import: data.getImport()){
+                i=FindVertex(graph,_import);
+                graph.addEdge(null,a,i,"import");
             }
         }
         

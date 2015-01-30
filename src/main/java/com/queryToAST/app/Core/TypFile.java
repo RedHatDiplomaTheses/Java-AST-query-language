@@ -15,5 +15,6 @@ public enum TypFile {
     INTERFACE,
     ENUMERATION,
     ANNOTATION,
+    PACKAGE,
     NONE
 }

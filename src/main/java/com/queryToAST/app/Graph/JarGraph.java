@@ -6,6 +6,7 @@ package com.queryToAST.app.Graph;
 
 
 
+import com.queryToAST.app.Core.TypFile;
 import com.queryToAST.app.Setting;
 import com.strobel.assembler.metadata.JarTypeLoader;
 import com.strobel.core.StringUtilities;
@@ -148,7 +149,7 @@ public class JarGraph {
             //System.out.println(NamePack);
             Vertex r = g.addVertex(null);
             r.setProperty("name", NamePack);
-            r.setProperty("typ", "package");
+            r.setProperty("typ", TypFile.PACKAGE);
             g.addEdge(null, j, r, "contain");
             return setPathPackages(g, r, internalName);
         }

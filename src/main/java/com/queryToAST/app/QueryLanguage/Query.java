@@ -19,14 +19,201 @@ import java.util.regex.Pattern;
  * @author Niriel
  */
 public class Query {
-    Graph graph;
-    public Query(String path,String query) throws IOException {        
-        JarGraph jar = new JarGraph(path, false, true);
-        graph = jar.Factory();
-        
+    
+    private Graph graph;
+    
+    public Query(Graph graph) throws IOException {        
+        this.graph = graph;
         //qT();
-        queryToDB(query);
+        //queryToDB(query);
     }
+        
+    
+    
+    public GremlinPipeline queryToDB(String query){
+                
+        Matcher mQuery = Pattern.compile("^([\\w/\\*]*) ([\\(\\)\\.\\w!?\\d=]+)?$").matcher(query);
+        GremlinPipeline pipe = new GremlinPipeline();
+        
+        //A (Path) (Query)
+        if(!mQuery.find()){
+            System.out.println("Error: Dotaz neodpovídá!");
+            return null;
+        }
+        //System.out.println(mQuery.group(1));
+        
+        //B (Path count)        
+        if(mQuery.group(1).compareTo("*") == 0)
+            pipe.start(graph.getVertices());
+        else{
+            pipe.start(graph.getVertex(0));            
+            for(String sPath :mQuery.group(1).toString().split("/")){
+                pipe.out("contain").has("typ",TypFile.PACKAGE).has("name", sPath);
+            }
+            pipe.out("contain");
+        }
+                
+        if(mQuery.group(2) == null)
+            return pipe;
+        //C (Konecny automat meho jazyka)
+        for(String step:mQuery.group(2).toString().split("\\.")){
+            //System.out.println(step);
+            Matcher mStep = Pattern.compile("(!?)([\\w]*)(?:\\(([\\w,@=\" ]*)\\))?").matcher(step);
+            if(!mStep.find()) {
+                System.out.println("Error: chyba jazyka!");
+                break;
+            }
+            //System.out.println("Prohledenj jen zde: " + mStep.group(1));
+//            System.out.println("KeyWord: " + mStep.group(2));
+//            System.out.println("Condition: " + mStep.group(3));
+            
+            boolean reverse = false;
+            if(mStep.group(1).toString().compareTo("!") == 0){
+                reverse = true;    
+            }
+            
+            switch(mStep.group(2)){                
+                case "":
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.CLASS:
+                    if(reverse)
+                        pipe.hasNot("typ", TypFile.CLASS);
+                    else
+                        pipe.has("typ", TypFile.CLASS);
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.EXTEND:
+                    if(reverse)
+                        pipe.in("extend");
+                    else
+                        pipe.out("extend");
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.IMPLEMENT:
+                    if(reverse)
+                        pipe.in("implement");
+                    else
+                        pipe.out("implement");
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        System.out.println("String1");
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.IMPORT:
+                    if(reverse)
+                        pipe.in("import");
+                    else
+                        pipe.out("import");
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.METHOD:
+                    if(reverse)
+                        pipe.in("contain");
+                    else
+                        pipe.out("contain").has("typ", TypFile.METODA);
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.PROPERTY:
+                    break;
+                case KeyWords.CALLMETHOD:
+                    if(reverse){
+                        pipe.in("call").has("typ", TypFile.METODA);
+                    }
+                    else
+                        pipe.out("call").has("typ", TypFile.METODA);
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.CONTAION:
+                    if(reverse)
+                        pipe.in("contain");
+                    else
+                        pipe.out("contain");
+                    break;
+                case KeyWords.PACKAGE:
+                    if(reverse)
+                        pipe.hasNot("typ",TypFile.PACKAGE);
+                    else
+                        pipe.has("typ",TypFile.PACKAGE);
+                    if(mStep.group(3) != null)
+                    for(String cond:mStep.group(3).toString().split(",")){
+                        condition(pipe,cond);
+                    }
+                    break;
+                case KeyWords.AS:
+                    pipe.as(mStep.group(3));
+                    break;
+                case KeyWords.BACK:
+                    pipe.back(mStep.group(3));
+                    break;
+                default:
+                    System.out.println("Error: nezname Klicove slovo\"" + mStep.group(1) + "\"");
+                    return null;                    
+            }
+        }        
+        
+        return pipe;
+    }
+    
+    
+    
+    private void condition(GremlinPipeline pipe, String cond){
+        String[] s = cond.split("=");
+        if(s[0].compareTo("typ")==0){
+            switch(s[1]){
+                case "class": ;
+                    pipe.has(s[0], TypFile.CLASS);
+                    break;
+                case "interface":
+                    pipe.has(s[0], TypFile.INTERFACE);
+                    break;
+                case "method":
+                    pipe.has(s[0], TypFile.METODA);
+                    break;
+                case "annotation":
+                    pipe.has(s[0], TypFile.ANNOTATION);
+                    break;
+                case "enum":
+                    pipe.has(s[0], TypFile.ENUMERATION);
+                    break;
+                case "package":
+                    pipe.has(s[0], TypFile.PACKAGE);
+                default:
+                    System.out.println("Spatne parametry");
+                    break;
+            }
+        }else if(s[0].compareTo("name") == 0){            
+            pipe.has(s[0], s[1]);
+        }else if(s[0].compareTo("annotation") == 0){
+            System.out.println("Dosud neimplementováno Annotation");
+        }else if(s[0].compareTo("argument") == 0){
+            System.out.println("Dosud neimplementováno Argument");
+        }else{
+            System.out.println("Neznamí atribut");
+        }
+    }
+    
+    
     
     private void qT(){
         GremlinPipeline pipe = new GremlinPipeline();
@@ -37,6 +224,7 @@ public class Query {
          * Classes importing/extending class C.        Dodelat importy 
          */
         //1. pipe.has("typ", TypFile.CLASS).has("name","C").out("extend").has("typ", TypFile.CLASS);
+        //pipe.as("C").in("extend").
         
         /*
          * Interfaces extending interface Iext.
@@ -85,128 +273,7 @@ public class Query {
 //        }
         
     }
-    
-    
-    
-    private void queryToDB(String query){
-                
-        Matcher mQuery = Pattern.compile("^([\\w/\\*]*) *(.*)$").matcher(query);
-        GremlinPipeline pipe = new GremlinPipeline();
-        
-        //A (Path) (Query)
-        if(!mQuery.find()){
-            System.out.println("Error: Dotaz neodpovídá!");
-            return;
-        }
-        //System.out.println(mQuery.group(1));
-        
-        //B (Path count)
-        pipe.start(graph.getVertices());
-//        boolean findEverywhere = false;
-//        for(String sPath :mQuery.group(1).toString().split("/")){
-//            if(sPath.compareTo("*") == 0){
-//                findEverywhere = true;                
-//            }else if(sPath.compareTo("") == 0){
-//                break;
-//            }else {
-//                if(findEverywhere){
-//                    
-//                }else{
-//                    pipe.out("contain").has("name",sPath);
-//                    //System.out.println("Pipe:" + pipe);
-//                }
-//            }
-//            //System.out.println("Spath:" + sPath);
-//        }
-        
-        pipe.as("result");
-        
-        //C (Konecny automat meho jazyka)
-        for(String step:mQuery.group(2).toString().split("\\.")){
-            //System.out.println(step);
-            Matcher mStep = Pattern.compile("(!?)([\\w]*)(?:\\(([\\w,@=\" ]*)\\))?").matcher(step);
-            if(!mStep.find()) {
-                System.out.println("Error Chyba jazyka!!");
-                break;
-            }
-            //System.out.println("Prohledenj jen zde: " + mStep.group(1));
-            System.out.println("KeyWord: " + mStep.group(2));
-            System.out.println("Condition: " + mStep.group(3));
-            
-            boolean FindSubclass = true;
-            if(mStep.group(1).toString().compareTo("!") == 0){
-                FindSubclass = false;    
-            }
-            
-            switch(mStep.group(2)){
-                case "":
-                case KeyWords.CLASS:
-                    pipe.has("typ", TypFile.CLASS);
-                    if(mStep.group(3) != null)
-                    for(String cond:mStep.group(3).toString().split(",")){
-                        condition(pipe,cond);
-                    }
-                    break;
-                case KeyWords.EXTEND:
-                    pipe.out("extend");                    
-                    if(mStep.group(3) != null)
-                    for(String cond:mStep.group(3).toString().split(",")){
-                        condition(pipe,cond);
-                    }
-                    break;
-                case KeyWords.IMPLEMENT:
-                    pipe.out("implement");                    
-                    if(mStep.group(3) != null)
-                    for(String cond:mStep.group(3).toString().split(",")){
-                        condition(pipe,cond);
-                    }
-                    break;
-                case KeyWords.IMPORT:
-                    pipe.out("import");
-                    if(mStep.group(3) != null)
-                    for(String cond:mStep.group(3).toString().split(",")){
-                        condition(pipe,cond);
-                    }
-                    break;
-                case KeyWords.METHOD:
-                    pipe.out("contain").has("typ", TypFile.METODA);
-                    if(mStep.group(3) != null)
-                    for(String cond:mStep.group(3).toString().split(",")){
-                        condition(pipe,cond);
-                    }
-                    break;
-                case KeyWords.PROPERTY:
-                    break;
-                case KeyWords.CALLMETHOD:
-                    pipe.out("contain").has("typ", TypFile.METODA);
-                    if(mStep.group(3) != null)
-                    for(String cond:mStep.group(3).toString().split(",")){
-                        condition(pipe,cond);
-                    }
-                    break;
-                default:
-                    System.out.println("Error:nezname Klicove slovo\"" + mStep.group(1) + "\"");
-                    break;
-            }
-        }
-        
-        pipe.back("result");
-        
-        for ( Object x: pipe.toList()){
-            Vertex x2 = (Vertex)x;
-            System.out.println("Výsledek jmeno: " + x2.getProperty("name"));
-            System.out.println("           typ: " + x2.getProperty("typ"));
-        }
-        
-    }
-    
-    
-    
-    private void condition(GremlinPipeline pipe, String cond){
-        String[] s = cond.split("=");
-        pipe.has(s[0], s[1]);        
-    }
-    
-    
-    
+
+
+
 }
