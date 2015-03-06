@@ -42,6 +42,7 @@ public class Query {
         }
         //System.out.println(mQuery.group(1));
         
+        
         //B (Path count)        
         if(mQuery.group(1).compareTo("*") == 0)
             pipe.start(graph.getVertices());
