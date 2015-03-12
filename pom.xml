@@ -59,7 +59,12 @@
 	<artifactId>procyon-compilertools</artifactId>
 	<version>0.5.27</version>
     </dependency>
-
-  </dependencies>
+        <dependency>
+            <groupId>com.thinkaurelius.titan</groupId>
+            <artifactId>titan-core</artifactId>
+            <version>0.5.1</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
   
 </project>
