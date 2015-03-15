@@ -21,50 +21,59 @@
         </plugins>
     </build>
     <dependencies>      
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>3.8.1</version>
-      <scope>test</scope>
-    </dependency>    
-     
-    <dependency>
-	<groupId>com.tinkerpop.blueprints</groupId>
-	<artifactId>blueprints-core</artifactId>
-	<version>2.6.0</version>
-    </dependency>
+        <dependency>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+          <version>3.8.1</version>
+          <scope>test</scope>
+        </dependency>    
+
+        <dependency>
+            <groupId>com.tinkerpop.blueprints</groupId>
+            <artifactId>blueprints-core</artifactId>
+            <version>2.6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tinkerpop</groupId>
+            <artifactId>frames</artifactId>
+            <version>2.5.0</version>
+          <type>jar</type>
+        </dependency>
     
-    <dependency>
-        <groupId>com.tinkerpop</groupId>
-        <artifactId>frames</artifactId>
-        <version>2.5.0</version>
-      <type>jar</type>
-    </dependency>
+        <dependency>
+          <groupId>com.tinkerpop.gremlin</groupId>
+          <artifactId>gremlin-java</artifactId>
+          <version>2.5.0</version>
+          <type>jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bitbucket.mstrobel</groupId>
+            <artifactId>procyon-core</artifactId>
+            <version>0.5.27</version>
+        </dependency>
     
-    <dependency>
-      <groupId>com.tinkerpop.gremlin</groupId>
-      <artifactId>gremlin-java</artifactId>
-      <version>2.5.0</version>
-      <type>jar</type>
-    </dependency>
-    
-    <dependency>
-	<groupId>org.bitbucket.mstrobel</groupId>
-	<artifactId>procyon-core</artifactId>
-	<version>0.5.27</version>
-    </dependency>
-    
-    <dependency>
-	<groupId>org.bitbucket.mstrobel</groupId>
-	<artifactId>procyon-compilertools</artifactId>
-	<version>0.5.27</version>
-    </dependency>
+        <dependency>
+            <groupId>org.bitbucket.mstrobel</groupId>
+            <artifactId>procyon-compilertools</artifactId>
+            <version>0.5.27</version>
+        </dependency>
         <dependency>
             <groupId>com.thinkaurelius.titan</groupId>
             <artifactId>titan-core</artifactId>
             <version>0.5.1</version>
             <type>jar</type>
         </dependency>
+        
+        <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>antlr4-runtime</artifactId>
+            <version>4.5</version>
+        </dependency>
     </dependencies>
+    
+    
+
   
 </project>
