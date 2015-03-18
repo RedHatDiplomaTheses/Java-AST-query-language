@@ -43,7 +43,7 @@ public class QueryTest extends TestCase{
     
     public void testQuery() throws IOException{
         // create a CharStream that reads from standard input
-        ANTLRInputStream input = new ANTLRInputStream(System.in);
+        ANTLRInputStream input = new ANTLRInputStream("select * from *");
         
         //Listner
         queryLexer lexer = new queryLexer(input);

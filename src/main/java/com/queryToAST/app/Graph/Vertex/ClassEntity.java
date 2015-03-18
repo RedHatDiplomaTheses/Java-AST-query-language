@@ -15,10 +15,10 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("class")
 public interface ClassEntity extends BaseEntity{
-    @Property("fullyQualifiedName")
-    public void setFullyQualifiedName(String fullyQualifiedName);
-    @Property("fullyQualifiedName")
-    public String getFullyQualifiedName();                
+    @Property("fqcn")
+    public void setFQCN(String fqcn);
+    @Property("fqcn")
+    public String getFQCN();
         
     //Method
     @Adjacency(label= "methodRelated",direction=Direction.OUT)

@@ -6,6 +6,7 @@ package com.queryToAST.app.Graph.Vertex;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
@@ -14,7 +15,11 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 @TypeValue("jar")
 public interface JarEntity extends BaseEntity{
- 
+    @Property("fqjn")
+    public void setFQJN(String fqjn);
+    @Property("fqjn")
+    public String getFQJN();
+    
     @Adjacency(label= "classRelated",direction=Direction.OUT)
     ClassEntity addClassRelated (); //Return new Vertex
     @Adjacency(label= "classRelated",direction=Direction.OUT)
