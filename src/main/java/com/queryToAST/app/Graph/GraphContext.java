@@ -221,7 +221,7 @@ public class GraphContext {
 
     private void setAnnotation(List<CustomAnnotation> annotations, AnnotatedEntity AE) {
         for(CustomAnnotation ca:annotations){
-            //if(log)
+            if(log)
             System.out.println(
                     "@"
                     + "\nDescription : " + ca.getAnnotationType().getDescription()
@@ -238,7 +238,7 @@ public class GraphContext {
             setImport(AE.getFQN());
             
             for (AnnotationParameter ap : ca.getParameters()) {
-              //  if(log)
+                if(log)
                 System.out.println(
                         "@P"
                         + "\nMember : " + ap.getMember());

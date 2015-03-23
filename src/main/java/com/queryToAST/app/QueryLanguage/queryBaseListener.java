@@ -1,3 +1,5 @@
+package com.queryToAST.app.QueryLanguage;
+
 // Generated from query.g by ANTLR 4.5
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -184,13 +186,13 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterParamAnnptated(queryParser.ParamAnnptatedContext ctx) { }
+	@Override public void enterParamAnnotated(queryParser.ParamAnnotatedContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitParamAnnptated(queryParser.ParamAnnptatedContext ctx) { }
+	@Override public void exitParamAnnotated(queryParser.ParamAnnotatedContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

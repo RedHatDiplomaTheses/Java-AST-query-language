@@ -1,3 +1,5 @@
+package com.queryToAST.app.QueryLanguage;
+
 // Generated from query.g by ANTLR 4.5
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -24,11 +26,11 @@ public class queryParser extends Parser {
 		RULE_program = 0, RULE_selectStatment = 1, RULE_paramSelect = 2, RULE_paramName = 3, 
 		RULE_packages = 4, RULE_packageName = 5, RULE_conditions = 6, RULE_cond = 7, 
 		RULE_innerSelect = 8, RULE_annotated = 9, RULE_method = 10, RULE_index = 11, 
-		RULE_annotatedStatment = 12, RULE_annotatedParams = 13, RULE_paramAnnptated = 14;
+		RULE_annotatedStatment = 12, RULE_annotatedParams = 13, RULE_paramAnnotated = 14;
 	public static final String[] ruleNames = {
 		"program", "selectStatment", "paramSelect", "paramName", "packages", "packageName", 
 		"conditions", "cond", "innerSelect", "annotated", "method", "index", "annotatedStatment", 
-		"annotatedParams", "paramAnnptated"
+		"annotatedParams", "paramAnnotated"
 	};
 
 	private static final String[] _LITERAL_NAMES = {
@@ -1037,11 +1039,11 @@ public class queryParser extends Parser {
 	}
 
 	public static class AnnotatedParamsContext extends ParserRuleContext {
-		public List<ParamAnnptatedContext> paramAnnptated() {
-			return getRuleContexts(ParamAnnptatedContext.class);
+		public List<ParamAnnotatedContext> paramAnnotated() {
+			return getRuleContexts(ParamAnnotatedContext.class);
 		}
-		public ParamAnnptatedContext paramAnnptated(int i) {
-			return getRuleContext(ParamAnnptatedContext.class,i);
+		public ParamAnnotatedContext paramAnnotated(int i) {
+			return getRuleContext(ParamAnnotatedContext.class,i);
 		}
 		public List<TerminalNode> COMMA() { return getTokens(queryParser.COMMA); }
 		public TerminalNode COMMA(int i) {
@@ -1069,7 +1071,7 @@ public class queryParser extends Parser {
 			enterOuterAlt(_localctx, 1);
 			{
 			setState(172);
-			paramAnnptated();
+			paramAnnotated();
 			setState(177);
 			_errHandler.sync(this);
 			_la = _input.LA(1);
@@ -1079,7 +1081,7 @@ public class queryParser extends Parser {
 				setState(173);
 				match(COMMA);
 				setState(174);
-				paramAnnptated();
+				paramAnnotated();
 				}
 				}
 				setState(179);
@@ -1099,7 +1101,7 @@ public class queryParser extends Parser {
 		return _localctx;
 	}
 
-	public static class ParamAnnptatedContext extends ParserRuleContext {
+	public static class ParamAnnotatedContext extends ParserRuleContext {
 		public List<TerminalNode> STRING() { return getTokens(queryParser.STRING); }
 		public TerminalNode STRING(int i) {
 			return getToken(queryParser.STRING, i);
@@ -1113,23 +1115,23 @@ public class queryParser extends Parser {
 		public AnnotatedStatmentContext annotatedStatment() {
 			return getRuleContext(AnnotatedStatmentContext.class,0);
 		}
-		public ParamAnnptatedContext(ParserRuleContext parent, int invokingState) {
+		public ParamAnnotatedContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
-		@Override public int getRuleIndex() { return RULE_paramAnnptated; }
+		@Override public int getRuleIndex() { return RULE_paramAnnotated; }
 		@Override
 		public void enterRule(ParseTreeListener listener) {
-			if ( listener instanceof queryListener ) ((queryListener)listener).enterParamAnnptated(this);
+			if ( listener instanceof queryListener ) ((queryListener)listener).enterParamAnnotated(this);
 		}
 		@Override
 		public void exitRule(ParseTreeListener listener) {
-			if ( listener instanceof queryListener ) ((queryListener)listener).exitParamAnnptated(this);
+			if ( listener instanceof queryListener ) ((queryListener)listener).exitParamAnnotated(this);
 		}
 	}
 
-	public final ParamAnnptatedContext paramAnnptated() throws RecognitionException {
-		ParamAnnptatedContext _localctx = new ParamAnnptatedContext(_ctx, getState());
-		enterRule(_localctx, 28, RULE_paramAnnptated);
+	public final ParamAnnotatedContext paramAnnotated() throws RecognitionException {
+		ParamAnnotatedContext _localctx = new ParamAnnotatedContext(_ctx, getState());
+		enterRule(_localctx, 28, RULE_paramAnnotated);
 		try {
 			setState(194);
 			switch ( getInterpreter().adaptivePredict(_input,19,_ctx) ) {

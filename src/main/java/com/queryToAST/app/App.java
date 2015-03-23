@@ -11,6 +11,6 @@ public class App
         String internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
         execute exec = new execute(internalName);        
         
-        exec.query("");
+        exec.query("select import,!extend");
     }                    
 }

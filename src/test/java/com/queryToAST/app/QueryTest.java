@@ -54,7 +54,7 @@ public class QueryTest extends TestCase{
         // create a parser that feeds off the tokens buffer
         queryParser parser = new queryParser(tokens);
         
-        ParseTree tree = parser.query(); // begin parsing at init rule
+        ParseTree tree = parser.program(); // begin parsing at init rule
         // create a standard ANTLR parse tree walker
         ParseTreeWalker walker = new ParseTreeWalker();
         // create listener then feed to walker

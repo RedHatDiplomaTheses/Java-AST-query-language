@@ -30,9 +30,9 @@ index : LBRACKET INT RBRACKET;
 
 annotatedStatment : LBRACKET STRING RBRACKET (DOT LBRACKET annotatedParams RBRACKET)?;
 
-annotatedParams : paramAnnptated (COMMA paramAnnptated)* ;
+annotatedParams : paramAnnotated (COMMA paramAnnotated)* ;
 
-paramAnnptated : STRING                              //parametr value
+paramAnnotated : STRING                              //parametr value
     | STRING COLON STRING                     //parametr object
     | STRING COLON LBRACE annotatedParams RBRACE   //parametr object array
     | STRING COLON annotatedStatment //parametr annotation

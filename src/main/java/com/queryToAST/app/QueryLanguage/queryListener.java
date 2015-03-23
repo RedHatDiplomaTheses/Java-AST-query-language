@@ -1,3 +1,5 @@
+package com.queryToAST.app.QueryLanguage;
+
 // Generated from query.g by ANTLR 4.5
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
@@ -148,13 +150,13 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#paramAnnptated}.
+	 * Enter a parse tree produced by {@link queryParser#paramAnnotated}.
 	 * @param ctx the parse tree
 	 */
-	void enterParamAnnptated(queryParser.ParamAnnptatedContext ctx);
+	void enterParamAnnotated(queryParser.ParamAnnotatedContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#paramAnnptated}.
+	 * Exit a parse tree produced by {@link queryParser#paramAnnotated}.
 	 * @param ctx the parse tree
 	 */
-	void exitParamAnnptated(queryParser.ParamAnnptatedContext ctx);
+	void exitParamAnnotated(queryParser.ParamAnnotatedContext ctx);
 }

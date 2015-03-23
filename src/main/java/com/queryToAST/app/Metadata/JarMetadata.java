@@ -67,8 +67,8 @@ public class JarMetadata {
                 final String internalName = StringUtilities.removeRight(name, ".class");
                 this._settings.setInternalName(internalName);
                 
-                if(!internalName.contains("Protokol"))
-                    continue;
+//                if(!internalName.contains("Protokol"))
+//                    continue;
                 ClassMetadata meta = new ClassMetadata(_settings);
                 _graphContext.CreateClassMetadata(meta.getMetadata());
                 
