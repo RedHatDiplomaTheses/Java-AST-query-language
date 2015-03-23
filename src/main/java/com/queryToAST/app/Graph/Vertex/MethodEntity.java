@@ -6,14 +6,26 @@ package com.queryToAST.app.Graph.Vertex;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
  *
  * @author Niriel
  */
-@TypeValue("method")
+//@TypeValue("method")
 public interface MethodEntity extends BaseEntity{
+    
+    @Property("countPara")
+    public void setCountPara(int count);
+    @Property("countPara")
+    public int getCountPara();
+    
+    @Property("briefDescription")
+    public void setBriefDescription(String brief);
+    @Property("briefDescription")
+    public String getBriefDescription();
+    
     
     //parametr
     @Adjacency(label= "methParaRelated",direction=Direction.OUT)

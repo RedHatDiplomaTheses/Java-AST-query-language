@@ -6,19 +6,22 @@ package com.queryToAST.app.Graph.Vertex;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
-import com.tinkerpop.frames.Property;
+import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
+import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
  *
  * @author Niriel
  */
-@TypeValue("jar")
+//@TypeValue("jar")
 public interface JarEntity extends BaseEntity{
-    @Property("fqjn")
-    public void setFQJN(String fqjn);
-    @Property("fqjn")
-    public String getFQJN();
+    
+    @GremlinGroovy("it.as('x').out('packageRelated').except('x').has('name',name)")
+    public PackageEntity getPackageRelated(@GremlinParam("name") String name);
+    
+    @GremlinGroovy("it.as('x').out('classRelated').except('x').has('name',name)")
+    public ClassEntity getClassRelated(@GremlinParam("name") String name);
     
     @Adjacency(label= "classRelated",direction=Direction.OUT)
     ClassEntity addClassRelated (); //Return new Vertex

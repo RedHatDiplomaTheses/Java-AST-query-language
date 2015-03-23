@@ -1,110 +1,93 @@
 grammar query;
 
-query : select? from? where? order_by?;
+program : selectStatment;
+selectStatment : (SELECT  paramSelect)? (FROM  packages)? (WHERE conditions)? (ORDER_BY STRING)?;
 
+paramSelect : paramName (COMMA paramName)* ;
 
-select : KEY_SELECT  sel_li_prop ;
-sel_li_prop : sel_prop(',' sel_prop)* ;
-sel_prop : '!' KEY_PROP ('[' method ']')?
-    | KEY_PROP ('[' method ']')?
-    | '*'
+paramName : EXCLAMANTION NAME (LBRACKET method RBRACKET)? | NAME (LBRACKET method RBRACKET)? | STAR ;
+
+packages : (packageName (COMMA packageName)* | STAR) ;
+
+packageName : (STRING | EXCLAMANTION STRING) ;
+
+conditions : cond (AND cond)* ;
+
+cond : NAME (OPERATORS STRING)
+    | NAME (LBRACKET STRING LBRACKET)* OPERATORS innerSelect
+    | '!' NAME | NAME | annotated ;
+
+innerSelect : LPAREN selectStatment RPAREN ;
+
+annotated : CC AT annotatedStatment
+    | MM LBRACKET method RBRACKET AT annotatedStatment
+    | PP LBRACKET method RBRACKET DOT index  AT annotatedStatment
     ;
 
+method : STRING | STRING COLON STRING (COMMA STRING COLON STRING)*;
 
-from : FROM  pack;
-pack : fro_pac (',' fro_pac)* ;
-fro_pac : STRING
-    | '!' STRING
-    | '*'
+index : LBRACKET INT RBRACKET;
+
+annotatedStatment : LBRACKET STRING RBRACKET (DOT LBRACKET annotatedParams RBRACKET)?;
+
+annotatedParams : paramAnnptated (COMMA paramAnnptated)* ;
+
+paramAnnptated : STRING                              //parametr value
+    | STRING COLON STRING                     //parametr object
+    | STRING COLON LBRACE annotatedParams RBRACE   //parametr object array
+    | STRING COLON annotatedStatment //parametr annotation
+    | annotatedStatment
     ;
 
-where : KEY_WHERE cond;
-cond : st_co (KEY_OP_BOOL st_co)* ;
-st_co : KEY_PROP KEY_OPERAND STRING 
-    | STRING KEY_OP_IN KEY_PROP
-    | KEY_PROP '['STRING']' KEY_OP_IN '(' query ')'
-    | KEY_PROP KEY_OP_IN '(' query ')'
-    | '(' query ')' KEY_OP_IN KEY_PROP
-    | '(' query ')' '[' STRING ']' KEY_OP_IN KEY_PROP
-    | KEY_BOOL
-    | '!' KEY_BOOL
-    | annot
-    | '!' annot
-    ;
-annot : CC '@' an_value
-    | MM '[' method ']' '@' an_value
-    | PP '[' method ']' '.' index  '@' an_value
-    ;
-method : STRING
-    | 'name' ':' STRING
-    | 'name' ':' STRING ',' 'arg' ':' STRING
-    ;
-index : '[' INT ']';
-an_value : '[' STRING ']' ('.' '[' params ']')?;
-params : param (',' param)* ;
-param : STRING                              //parametr value
-    | STRING ':' STRING                     //parametr object
-    | STRING ':' '{' para (',' para)* '}'   //parametr object array
-    | STRING ':' '{' param (',' param)* '}' //parametr annotation
-    ;
-para : STRING
-    | '{' para (',' para)* '}'
-    ;
-
-
-order_by : ORDER_BY STRING;
-
-
-
-KEY_SELECT: [Ss][Ee][Ll][Ee][Cc][Tt];
-KEY_PROP : [Ii][Mm][Pp][Oo][Rr][Tt]
-    | [Ee][Xx][Tt][Ee][Nn][Dd]
-    | [Ii][Mm][Pp][Ll][Ee][Mm][Ee][Nn][Tt][Ss]
-    | [Tt][Yy][Pp][Ee]
-    | [Nn][Aa][Mm][Ee]
-    | [Mm][Ee][Tt][Hh][Oo][Dd]
-    | [Cc][Aa][Ll][Ll]
-    | [Ff][Qq][Cc][Nn]         //Fully qualified class name (fqcn)
-    ;
-
+SELECT: [Ss][Ee][Ll][Ee][Cc][Tt];
 
 FROM : [Ff][Rr][Oo][Mm];
 
+WHERE: [Ww][Hh][Ee][Rr][Ee] ;
 
-KEY_WHERE: [Ww][Hh][Ee][Rr][Ee] ;
-KEY_OP_BOOL : [Aa][Nn][Dd]
-    | [Oo][Rr]
-    | [Nn][Oo][Tt]
-    ;
-KEY_OPERAND : '=' 
-    | '!='
-    ;
-KEY_OP_IN : [Ii][Nn]
-    | [Nn][Oo][Tt][ ][Ii][Nn]
-    ;
-KEY_BOOL : [Ii][Nn][Tt][Ee][Rr][Ff][Aa][Cc][Ee]
-    | [Ss][Uu][Bb][Ii][Nn][Tt][Ee][Rr][Ff][Aa][Cc][Ee]
-    | [Ss][Uu][Pp][Ee][Rr][Ii][Nn][Tt][Ee][Rr][Ff][Aa][Cc][Ee]
-    | [Cc][Ll][Aa][Ss][Ss]
-    | [Ss][Uu][Bb][Cc][Ll][Aa][Ss][Ss]
-    | [Ss][Uu][Pp][Ee][Rr][Cc][Ll][Aa][Ss][Ss] 
-    | [Aa][Bb][Ss][Tt][Rr][Aa][Cc][Tt]
-    | [Ee][Nn][Uu][Mm]
-    | [Aa][Nn][Nn][Oo][Tt][Aa][Tt][Ii][Oo][Nn]
-    | [Pp][Rr][Oo][Tt][Ee][Cc][Tt][Ee][Dd]
-    | [Pp][Rr][Ii][Vv][Aa][Tt][Ee]
-    | [Pp][Uu][Bb][Ll][Ii][Cc]
-    | [Ss][Tt][Aa][Tt][Ii][Cc]
-    | [Ff][Ii][Nn][Aa][Ll]
-    ;
+AND : [Aa][Nn][Dd] ;
+
+OPERATORS : ('='|'!='|'~'|[Ii][Nn]) ;
+
+ORDER_BY : [Oo][Rr][Dd][Ee][Rr](' '*)[Bb][Yy] ;
+
 CC : [Cc] ;
+
 MM : [Mm] ;
+
 PP : [Pp] ;
 
+COLON : ':' ;
 
-ORDER_BY : [Oo][Rr][Dd][Ee][Rr][ ][Bb][Yy] ;
+COMMA: ',' ;
+
+LBRACKET : '[' ;
+
+RBRACKET : ']' ;
+
+LPAREN : '(' ;
+
+RPAREN : ')' ;
+
+LBRACE : '{' ;
+
+RBRACE : '}' ;
+
+EXCLAMANTION : '!' ;
+
+STAR : '*' ;
+
+AT : '@' ;
+
+DOT : '.' ;
+
 INT : DIGIT+ ;
 fragment DIGIT : '0'..'9' ;
+
+NAME : LETTER+ ;
+fragment LETTER: ('a'..'z'|'A'..'Z');
+
 STRING : '"' ( ESC | . )*? '"' ;
 fragment ESC : '\\' [btnr"\\] ; // \b, \t, \n etc...
+
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines

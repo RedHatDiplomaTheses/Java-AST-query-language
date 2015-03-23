@@ -7,19 +7,31 @@ package com.queryToAST.app.Graph.Vertex;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
+import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
+import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
  *
  * @author Niriel
  */
-@TypeValue("class")
+//@TypeValue("class")
 public interface ClassEntity extends BaseEntity{
-    @Property("fqcn")
-    public void setFQCN(String fqcn);
-    @Property("fqcn")
-    public String getFQCN();
-        
+    
+    @GremlinGroovy("it.as('x').out('classRelated').except('x').has('name',name)")
+    public ClassEntity getClassRelated(@GremlinParam("name") String name);
+    
+    @GremlinGroovy("it.as('x').out('methodRelated').except('x').has('name',name)")
+    public MethodEntity getMethodRelated(@GremlinParam("name") String name);
+    
+    @GremlinGroovy("it.as('x').out('importRelated').except('x').has('fqn',fqn)")
+    public ClassEntity getImportRelated(@GremlinParam("fqn") String fqn);
+    
+    @Property("inner")
+    public void setInner(boolean inner);
+    @Property("inner")
+    public boolean isInner();       
+    
     //Method
     @Adjacency(label= "methodRelated",direction=Direction.OUT)
     MethodEntity addMethodRelated (); //Return new Vertex
@@ -59,4 +71,12 @@ public interface ClassEntity extends BaseEntity{
     ClassEntity addImplementsdRelated (ClassEntity classRelated);  //Add an existing Vertex    
     @Adjacency(label = "implementsRelated", direction=Direction.OUT)
     Iterable<ClassEntity> getImplementsRelated();
+    
+    //inner Class
+    @Adjacency(label= "classRelated",direction=Direction.OUT)
+    ClassEntity addClassRelated (); //Return new Vertex
+    @Adjacency(label= "classRelated",direction=Direction.OUT)
+    ClassEntity addClassRelated (ClassEntity classRelated);  //Add an existing Vertex    
+    @Adjacency(label = "classRelated", direction=Direction.OUT)
+    Iterable<ClassEntity> getClassRelated();
 }

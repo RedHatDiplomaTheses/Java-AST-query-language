@@ -6,27 +6,17 @@ package com.queryToAST.app.Metadata;
 
 
 
-import com.queryToAST.app.Core.TypFile;
 import com.queryToAST.app.Graph.GraphContext;
-import com.queryToAST.app.Metadata.ClassMetadata;
 import com.queryToAST.app.Setting;
 import com.strobel.assembler.metadata.JarTypeLoader;
-import com.strobel.assembler.metadata.TypeDefinition;
 import com.strobel.core.StringUtilities;
 import com.strobel.decompiler.DecompilerSettings;
 import com.strobel.decompiler.languages.Languages;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
-import com.tinkerpop.gremlin.java.GremlinPipeline;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 

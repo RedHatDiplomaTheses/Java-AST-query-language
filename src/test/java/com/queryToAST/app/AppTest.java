@@ -39,16 +39,7 @@ public class AppTest
     public void testApp()
     {
         
-        GraphContext graphContext = new GraphContext();        
-        FramedGraph framed = graphContext.getFramed();
-        JarEntity jar =  (JarEntity) framed.frame(graphContext.getGraph().addVertex(null), JarEntity.class);
-        jar.setName("ProjektNemesis");
-        jar.setType("jar");
-        ClassEntity classTMP = jar.addClassRelated();
-        classTMP.setName("Parser");
-        classTMP.setType("class");
-        classTMP.setFQCN("com.test.parser.class");
-        System.out.println(jar.getClassRelated().iterator().next().getFQCN());
+      
         assertTrue( true );        
     }
     

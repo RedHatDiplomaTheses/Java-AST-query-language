@@ -1,5 +1,3 @@
-package com.queryToAST.app.QueryLanguage;
-
 // Generated from query.g by ANTLR 4.5
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
@@ -10,85 +8,75 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface queryListener extends ParseTreeListener {
 	/**
-	 * Enter a parse tree produced by {@link queryParser#query}.
+	 * Enter a parse tree produced by {@link queryParser#program}.
 	 * @param ctx the parse tree
 	 */
-	void enterQuery(queryParser.QueryContext ctx);
+	void enterProgram(queryParser.ProgramContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#query}.
+	 * Exit a parse tree produced by {@link queryParser#program}.
 	 * @param ctx the parse tree
 	 */
-	void exitQuery(queryParser.QueryContext ctx);
+	void exitProgram(queryParser.ProgramContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#select}.
+	 * Enter a parse tree produced by {@link queryParser#selectStatment}.
 	 * @param ctx the parse tree
 	 */
-	void enterSelect(queryParser.SelectContext ctx);
+	void enterSelectStatment(queryParser.SelectStatmentContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#select}.
+	 * Exit a parse tree produced by {@link queryParser#selectStatment}.
 	 * @param ctx the parse tree
 	 */
-	void exitSelect(queryParser.SelectContext ctx);
+	void exitSelectStatment(queryParser.SelectStatmentContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#sel_li_prop}.
+	 * Enter a parse tree produced by {@link queryParser#paramSelect}.
 	 * @param ctx the parse tree
 	 */
-	void enterSel_li_prop(queryParser.Sel_li_propContext ctx);
+	void enterParamSelect(queryParser.ParamSelectContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#sel_li_prop}.
+	 * Exit a parse tree produced by {@link queryParser#paramSelect}.
 	 * @param ctx the parse tree
 	 */
-	void exitSel_li_prop(queryParser.Sel_li_propContext ctx);
+	void exitParamSelect(queryParser.ParamSelectContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#sel_prop}.
+	 * Enter a parse tree produced by {@link queryParser#paramName}.
 	 * @param ctx the parse tree
 	 */
-	void enterSel_prop(queryParser.Sel_propContext ctx);
+	void enterParamName(queryParser.ParamNameContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#sel_prop}.
+	 * Exit a parse tree produced by {@link queryParser#paramName}.
 	 * @param ctx the parse tree
 	 */
-	void exitSel_prop(queryParser.Sel_propContext ctx);
+	void exitParamName(queryParser.ParamNameContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#from}.
+	 * Enter a parse tree produced by {@link queryParser#packages}.
 	 * @param ctx the parse tree
 	 */
-	void enterFrom(queryParser.FromContext ctx);
+	void enterPackages(queryParser.PackagesContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#from}.
+	 * Exit a parse tree produced by {@link queryParser#packages}.
 	 * @param ctx the parse tree
 	 */
-	void exitFrom(queryParser.FromContext ctx);
+	void exitPackages(queryParser.PackagesContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#pack}.
+	 * Enter a parse tree produced by {@link queryParser#packageName}.
 	 * @param ctx the parse tree
 	 */
-	void enterPack(queryParser.PackContext ctx);
+	void enterPackageName(queryParser.PackageNameContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#pack}.
+	 * Exit a parse tree produced by {@link queryParser#packageName}.
 	 * @param ctx the parse tree
 	 */
-	void exitPack(queryParser.PackContext ctx);
+	void exitPackageName(queryParser.PackageNameContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#fro_pac}.
+	 * Enter a parse tree produced by {@link queryParser#conditions}.
 	 * @param ctx the parse tree
 	 */
-	void enterFro_pac(queryParser.Fro_pacContext ctx);
+	void enterConditions(queryParser.ConditionsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#fro_pac}.
+	 * Exit a parse tree produced by {@link queryParser#conditions}.
 	 * @param ctx the parse tree
 	 */
-	void exitFro_pac(queryParser.Fro_pacContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#where}.
-	 * @param ctx the parse tree
-	 */
-	void enterWhere(queryParser.WhereContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#where}.
-	 * @param ctx the parse tree
-	 */
-	void exitWhere(queryParser.WhereContext ctx);
+	void exitConditions(queryParser.ConditionsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link queryParser#cond}.
 	 * @param ctx the parse tree
@@ -100,25 +88,25 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitCond(queryParser.CondContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#st_co}.
+	 * Enter a parse tree produced by {@link queryParser#innerSelect}.
 	 * @param ctx the parse tree
 	 */
-	void enterSt_co(queryParser.St_coContext ctx);
+	void enterInnerSelect(queryParser.InnerSelectContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#st_co}.
+	 * Exit a parse tree produced by {@link queryParser#innerSelect}.
 	 * @param ctx the parse tree
 	 */
-	void exitSt_co(queryParser.St_coContext ctx);
+	void exitInnerSelect(queryParser.InnerSelectContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#annot}.
+	 * Enter a parse tree produced by {@link queryParser#annotated}.
 	 * @param ctx the parse tree
 	 */
-	void enterAnnot(queryParser.AnnotContext ctx);
+	void enterAnnotated(queryParser.AnnotatedContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#annot}.
+	 * Exit a parse tree produced by {@link queryParser#annotated}.
 	 * @param ctx the parse tree
 	 */
-	void exitAnnot(queryParser.AnnotContext ctx);
+	void exitAnnotated(queryParser.AnnotatedContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link queryParser#method}.
 	 * @param ctx the parse tree
@@ -140,53 +128,33 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitIndex(queryParser.IndexContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#an_value}.
+	 * Enter a parse tree produced by {@link queryParser#annotatedStatment}.
 	 * @param ctx the parse tree
 	 */
-	void enterAn_value(queryParser.An_valueContext ctx);
+	void enterAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#an_value}.
+	 * Exit a parse tree produced by {@link queryParser#annotatedStatment}.
 	 * @param ctx the parse tree
 	 */
-	void exitAn_value(queryParser.An_valueContext ctx);
+	void exitAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#params}.
+	 * Enter a parse tree produced by {@link queryParser#annotatedParams}.
 	 * @param ctx the parse tree
 	 */
-	void enterParams(queryParser.ParamsContext ctx);
+	void enterAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#params}.
+	 * Exit a parse tree produced by {@link queryParser#annotatedParams}.
 	 * @param ctx the parse tree
 	 */
-	void exitParams(queryParser.ParamsContext ctx);
+	void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#param}.
+	 * Enter a parse tree produced by {@link queryParser#paramAnnptated}.
 	 * @param ctx the parse tree
 	 */
-	void enterParam(queryParser.ParamContext ctx);
+	void enterParamAnnptated(queryParser.ParamAnnptatedContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#param}.
+	 * Exit a parse tree produced by {@link queryParser#paramAnnptated}.
 	 * @param ctx the parse tree
 	 */
-	void exitParam(queryParser.ParamContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#para}.
-	 * @param ctx the parse tree
-	 */
-	void enterPara(queryParser.ParaContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#para}.
-	 * @param ctx the parse tree
-	 */
-	void exitPara(queryParser.ParaContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#order_by}.
-	 * @param ctx the parse tree
-	 */
-	void enterOrder_by(queryParser.Order_byContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#order_by}.
-	 * @param ctx the parse tree
-	 */
-	void exitOrder_by(queryParser.Order_byContext ctx);
+	void exitParamAnnptated(queryParser.ParamAnnptatedContext ctx);
 }

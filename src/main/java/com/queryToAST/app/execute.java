@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class execute {
     private GraphContext _graphContext = null;
-
+    private boolean log=true;
     public execute(String path) throws IOException {
         _graphContext = new GraphContext();
         
@@ -25,7 +25,9 @@ public class execute {
     }
     
     public List<Vertex> query(String query){
+        if(log)
         _graphContext.PrintVertex();
+        if(log)
         _graphContext.PrintEdge();
         return null;
     }

@@ -13,9 +13,13 @@ import com.tinkerpop.frames.Property;
  * @author Niriel
  */
 public interface AnnParaEntity extends BaseEntity{
-    //TYPE: value[](string,enum,int) AnnotatedRelated[](Annotation) AnnParaEntity[](AnnParaEntity)
     
-    //Pole Value[]        
+    @Property("value")
+    public void setValue(String value);
+    @Property("value")
+    public String getValue();
+    
+    //Pole Value[]
     @Adjacency(label= "valueRelated",direction=Direction.OUT)
     public String addValueRelated (String value);  //Add an existing Vertex    
     @Adjacency(label = "valueRelated", direction=Direction.OUT)

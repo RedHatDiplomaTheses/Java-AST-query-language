@@ -30,10 +30,13 @@ import java.io.OutputStreamWriter;
  */
 public class ClassMetadata extends ProcessingData{   
     private TypeDefinition _typeDefinition;
+    private boolean log =false;
     
     public ClassMetadata(Setting settings) {
         super(settings);
-        Build(settings.getSettings());                
+        Build(settings.getSettings());
+        if(log)
+        System.out.println(_outputVar);
     }
    
     public TypeDefinition getMetadata(){

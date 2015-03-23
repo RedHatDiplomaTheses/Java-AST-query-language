@@ -1,5 +1,3 @@
-package com.queryToAST.app.QueryLanguage;
-
 // Generated from query.g by ANTLR 4.5
 
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -18,97 +16,85 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterQuery(queryParser.QueryContext ctx) { }
+	@Override public void enterProgram(queryParser.ProgramContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitQuery(queryParser.QueryContext ctx) { }
+	@Override public void exitProgram(queryParser.ProgramContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSelect(queryParser.SelectContext ctx) { }
+	@Override public void enterSelectStatment(queryParser.SelectStatmentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSelect(queryParser.SelectContext ctx) { }
+	@Override public void exitSelectStatment(queryParser.SelectStatmentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSel_li_prop(queryParser.Sel_li_propContext ctx) { }
+	@Override public void enterParamSelect(queryParser.ParamSelectContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSel_li_prop(queryParser.Sel_li_propContext ctx) { }
+	@Override public void exitParamSelect(queryParser.ParamSelectContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSel_prop(queryParser.Sel_propContext ctx) { }
+	@Override public void enterParamName(queryParser.ParamNameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSel_prop(queryParser.Sel_propContext ctx) { }
+	@Override public void exitParamName(queryParser.ParamNameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFrom(queryParser.FromContext ctx) { }
+	@Override public void enterPackages(queryParser.PackagesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFrom(queryParser.FromContext ctx) { }
+	@Override public void exitPackages(queryParser.PackagesContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterPack(queryParser.PackContext ctx) { }
+	@Override public void enterPackageName(queryParser.PackageNameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitPack(queryParser.PackContext ctx) { }
+	@Override public void exitPackageName(queryParser.PackageNameContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterFro_pac(queryParser.Fro_pacContext ctx) { }
+	@Override public void enterConditions(queryParser.ConditionsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitFro_pac(queryParser.Fro_pacContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterWhere(queryParser.WhereContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitWhere(queryParser.WhereContext ctx) { }
+	@Override public void exitConditions(queryParser.ConditionsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -126,25 +112,25 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterSt_co(queryParser.St_coContext ctx) { }
+	@Override public void enterInnerSelect(queryParser.InnerSelectContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitSt_co(queryParser.St_coContext ctx) { }
+	@Override public void exitInnerSelect(queryParser.InnerSelectContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAnnot(queryParser.AnnotContext ctx) { }
+	@Override public void enterAnnotated(queryParser.AnnotatedContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAnnot(queryParser.AnnotContext ctx) { }
+	@Override public void exitAnnotated(queryParser.AnnotatedContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -174,61 +160,37 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAn_value(queryParser.An_valueContext ctx) { }
+	@Override public void enterAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAn_value(queryParser.An_valueContext ctx) { }
+	@Override public void exitAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterParams(queryParser.ParamsContext ctx) { }
+	@Override public void enterAnnotatedParams(queryParser.AnnotatedParamsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitParams(queryParser.ParamsContext ctx) { }
+	@Override public void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterParam(queryParser.ParamContext ctx) { }
+	@Override public void enterParamAnnptated(queryParser.ParamAnnptatedContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitParam(queryParser.ParamContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterPara(queryParser.ParaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitPara(queryParser.ParaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterOrder_by(queryParser.Order_byContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOrder_by(queryParser.Order_byContext ctx) { }
+	@Override public void exitParamAnnptated(queryParser.ParamAnnptatedContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
