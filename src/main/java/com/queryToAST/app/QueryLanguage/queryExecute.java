@@ -186,6 +186,7 @@ public class queryExecute extends queryBaseListener{
 
     @Override
     public void exitProgram(queryParser.ProgramContext ctx) {
+        System.out.println(ctx.getText());
         super.exitProgram(ctx); //To change body of generated methods, choose Tools | Templates.
     }
 
