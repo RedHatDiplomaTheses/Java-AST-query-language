@@ -4,6 +4,9 @@
  */
 package com.queryToAST.app.Graph.Vertex;
 
+import com.queryToAST.app.Graph.Edge.ImportRelated;
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.VertexFrame;
 import com.tinkerpop.frames.modules.typedgraph.TypeField;
@@ -25,9 +28,9 @@ public interface BaseEntity extends VertexFrame {
     public String getFQN();
 
     @Property("type")
-    public void setType(String name);
+    public void setType(String type);
     @Property("type")
-    public String GetType();
+    public String getType();
 
     @Property("description")
     public void setDescription(String description);
@@ -63,4 +66,5 @@ public interface BaseEntity extends VertexFrame {
     public void setStatic(boolean Static);
     @Property("static")
     public boolean isStatic();
+        
 }

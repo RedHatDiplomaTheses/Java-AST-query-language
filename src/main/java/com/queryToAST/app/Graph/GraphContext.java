@@ -36,21 +36,28 @@ import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
 import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
-import com.tinkerpop.frames.modules.typedgraph.TypedGraphModuleBuilder;
 import java.util.ArrayList;
 import java.util.List;
+import com.google.common.collect.Lists;
+import com.strobel.assembler.ir.ConstantPool;
 
 /**
  *
  * @author Niriel
  */
 public class GraphContext {
-
-    private Graph graph;            // základní graf    
-    private FramedGraph<Graph> framed;     // rozšíøený graf    
+       
+    private boolean error = false;
+    private final Graph graph;            // základní graf    
+    private final FramedGraph<Graph> framed;     // rozšíøený graf    
     private JarEntity _jar;
-    private boolean log = false;
+    private final boolean log = false;
     private ClassEntity _tmp = null;
+
+    public boolean isError() {
+        return error;
+    }
+    
     public Graph getGraph() {
         return graph;
     }   
@@ -94,32 +101,39 @@ public class GraphContext {
                 + "\nInner : " + metadata.isInnerClass()
         );                
         
-        ClassEntity tmp = getClass(metadata.getFullName());
-        _tmp = tmp;
-        tmp.setName(metadata.getName());        
-        tmp.setDescription(metadata.getDescription());
-        tmp.setNotDecompile(false);
-        tmp.setFQN(metadata.getFullName());
-        tmp.setInner(metadata.isInnerClass());
-        tmp.setFinal(metadata.isFinal());
-        tmp.setPrivate(metadata.isPrivate());
-        tmp.setProtected(metadata.isProtected());
-        tmp.setPublic(metadata.isPublic());
+            ClassEntity classEntity = getClass(metadata.getFullName());
+        _tmp = classEntity;
+        classEntity.setName(metadata.getName());        
+        classEntity.setDescription(metadata.getDescription());
+        classEntity.setNotDecompile(false);
+        classEntity.setFQN(metadata.getFullName());
+        classEntity.setInner(metadata.isInnerClass());
+        classEntity.setFinal(metadata.isFinal());
+        classEntity.setPrivate(metadata.isPrivate());
+        classEntity.setProtected(metadata.isProtected());
+        classEntity.setPublic(metadata.isPublic());
         if(!(metadata.getBaseType().getFullName().compareTo("java.lang.Object") == 0 || 
                 metadata.getBaseType().getFullName().compareTo("java.lang.Enum") == 0)){
-                tmp.addExtendsRelated(getClass(metadata.getBaseType().getFullName()));
+                classEntity.addExtendsRelated(getClass(metadata.getBaseType().getFullName()));
                 setImport(metadata.getBaseType().getFullName());
         }
         
         //umisteni v baliku
-        setPKG(tmp);
+        setPKG(classEntity);
         
         //implementace
         for(TypeReference ei:metadata.getExplicitInterfaces()){
+            if(ei.getFullName().compareTo("java.lang.annotation.Annotation")==0)
+                break;
             setImport(ei.getFullName());
-            tmp.addImplementsdRelated(getClass(ei.getFullName()));
+            classEntity.addImplementsdRelated(getClass(ei.getFullName()));
         }
         
+        if(metadata.hasAnnotations()){
+            for(CustomAnnotation ca:metadata.getAnnotations()){                
+                setAnnotation(ca,classEntity.addAnnotatedRelated());
+            }
+        }
         
         //propperty        
         for(FieldDefinition df:metadata.getDeclaredFields()){
@@ -128,62 +142,61 @@ public class GraphContext {
                     + "\nName : " + df.getName()
                     + "\nType : " + df.getFieldType().getFullName()
             );
-            setImport(df.getFieldType().getFullName());
+                setImport(df.getFieldType().getFullName());
         }
         
+        if(log)
+        for(ConstantPool.Entry ent:metadata.getConstantPool())
+            if(ent!=null)
+                System.out.println(ent);
+
         //Innerclass
         if(log)
         for(TypeDefinition dt:metadata.getDeclaredTypes()){
             System.out.println("Decoared : " + dt.getName());
         }
-        
-        if(metadata.isClass()){
-            tmp.setType("class");
-            if(metadata.hasAnnotations()){
-                setAnnotation(metadata.getAnnotations(),tmp.addAnnotatedRelated());
-            }
+            
+        if(metadata.isClass())
+        {
+            classEntity.setType("class");           
             for(MethodDefinition m:metadata.getDeclaredMethods()){
                 boolean cmp = true;
                 for(Vertex v :graph.getVertices()){
-                    if(v.getProperty("fqn") != null && v.getProperty("fqn").toString().compareTo(m.getFullName()) == 0){
+                    if(v.getProperty("fqn") != null
+                            && v.getProperty("fqn").toString().compareTo(m.getFullName()) == 0){
                         MethodEntity meqt = framed.frame(v, MethodEntity.class);
                         if(meqt.getBriefDescription().compareTo(m.getBriefDescription()) == 0){
                             cmp = false;                            
-                            tmp.addMethodRelated(meqt);
+                            classEntity.addMethodRelated(meqt);
                             setMethod(m, meqt);
                         }
                     }
                 }
                 if(cmp)
-                setMethod(m,tmp.addMethodRelated());
+                setMethod(m,classEntity.addMethodRelated());
             }
+        }else if (metadata.isAnnotation()){            
+            classEntity.setType("annotation");
         }else if (metadata.isInterface()) {
-            tmp.setType("interface");            
-            if(metadata.hasAnnotations()){
-                setAnnotation(metadata.getAnnotations(),tmp.addAnnotatedRelated());
-            }
+            classEntity.setType("interface");
            for(MethodDefinition m:metadata.getDeclaredMethods()){
                 boolean cmp = true;
                 for(Vertex v :graph.getVertices()){
-                    if(v.getProperty("fqn") != null && v.getProperty("fqn").toString().compareTo(m.getFullName()) == 0){
+                    if(v.getProperty("fqn") != null
+                            && v.getProperty("fqn").toString().compareTo(m.getFullName()) == 0){
                         MethodEntity meqt = framed.frame(v, MethodEntity.class);
                         if(meqt.getBriefDescription().compareTo(m.getBriefDescription()) == 0){
                             cmp = false;                            
-                            tmp.addMethodRelated(meqt);
+                            classEntity.addMethodRelated(meqt);
                             setMethod(m, meqt);
                         }
                     }
                 }
                 if(cmp)
-                setMethod(m,tmp.addMethodRelated());
+                setMethod(m,classEntity.addMethodRelated());
             }
         }else if(metadata.isEnum()){
-            tmp.setType("enum");
-        }else if (metadata.isAnnotation()){
-            if(metadata.hasAnnotations()){
-                setAnnotation(metadata.getAnnotations(),tmp.addAnnotatedRelated());
-            }
-            tmp.setType("annotation");
+            classEntity.setType("enum");
         }       
     }
 
@@ -213,37 +226,147 @@ public class GraphContext {
             System.out.println(
                     "\nEDGE"
                     + "\nLable : " + e.getLabel()
-                    + "\n" + e.getVertex(Direction.OUT).getProperty("name")
-                    + "<-->" + e.getVertex(Direction.IN).getProperty("name")
+                    + "\n" + e.getVertex(Direction.OUT).getProperty("fqn")
+                    + "<-->" + e.getVertex(Direction.IN).getProperty("fqn")
             );
         }
     }
+    
+    public void PrintGraph(){
+        for(PackageEntity pes: _jar.getPackageRelated()){
+            System.out.println("\nPACKAGE"
+                    + "\nName : " + pes.getName()
+            );
+            for(ClassEntity ces : pes.getClassRelated()){
+                System.out.println("\tCLASS"
+                    + "\n\tName : " + ces.getName()
+                );
+                for(ClassEntity ex:ces.getExtendsRelated())
+                    System.out.println("\t\tEXTEND : " + ex.getName());
+                for(ClassEntity im: ces.getImplementsRelated())
+                    System.out.println("\t\tIMPLEMENTS : " + im.getName());
+                for(ClassEntity imp: ces.getImportRelated())
+                    System.out.println("\t\tIMPORT : " + imp.getFQN());
+                for(AnnotatedEntity an:ces.getAnnotatedRelated()){
+                    System.out.println("\t\tAnnotated : " + an.getName());
+                    for(AnnParaEntity ap: an.getAnnParaRelated()){
+                        System.out.println("\t\t\tAnnParam : " + ap.getName() + " type : " + ap.getType());
+                        for(AnnParaEntity ps : ap.getAnnParaRelated()){
+                            System.out.println("\t\t\tAnnParam : " + ps.getFQN() + " type : " + ps.getType() + " value : " + ps.getValue());
+                            for( AnnParaEntity abs:ps.getAnnParaRelated()){
+                                System.out.println("\t\tAnnotated : " + abs.getName()  + " type : " + abs.getType() + " value : " + abs.getValue());
+                            }
+                        }
+                    }
+                }
+                for(MethodEntity me:ces.getMethodRelated()){
+                    System.out.println(
+                            "\t\tMETHOD : " + me.getDescription()
+                    );
+                    for(AnnotatedEntity anr:me.getAnnotatedRelated()){
+                        System.out.println("\t\tAnnotated : " + anr.getName());
+                    }
+                    for(MethodEntity cr:me.getCallRelated()){
+                        System.out.println("\t\tCall : " + cr.getFQN());
+                        System.out.println("\t\tCallClass : " + cr.getInClassRelated().getFQN());
+                    }
+                }
+            }
+            for(PackageEntity pess:pes.getPackageRelated()){
+                System.out.println("\n\tPACKAGE"
+                    + "\n\tName : " + pess.getName()
+                );
+                for(ClassEntity ces : pess.getClassRelated()){
+                System.out.println("\t\tCLASS"
+                    + "\n\t\tName : " + ces.getName()                        
+                );
+                for(ClassEntity ex:ces.getExtendsRelated())
+                    System.out.println("\t\t\tEXTEND : " + ex.getName());
+                for(ClassEntity im: ces.getImplementsRelated())
+                    System.out.println("\t\t\tIMPLEMENTS : " + im.getName());
+                for(ClassEntity imp: ces.getImportRelated())
+                    System.out.println("\t\t\tIMPORT : " + imp.getFQN());
+                for(AnnotatedEntity an:ces.getAnnotatedRelated()){
+                    System.out.println("\t\t\tAnnotated : " + an.getName());
+                    for(AnnParaEntity ap: an.getAnnParaRelated())
+                        System.out.println("\t\t\t\tAnnParam : " + ap.getType());
+                }
+                for(MethodEntity me:ces.getMethodRelated()){
+                    System.out.println(
+                            "\t\t\tMETHOD : " + me.getDescription()
+                    );
+                    for(AnnotatedEntity anr:me.getAnnotatedRelated()){
+                        System.out.println("\t\t\t\tAnnotated : " + anr.getName());
+                    }
+                    for(MethodEntity cr:me.getCallRelated()){
+                        System.out.println("\t\t\t\tCall : " + cr.getFQN());
+                    }
+                }
+                }
+                
+                for(PackageEntity pesss:pess.getPackageRelated()){
+                System.out.println("\n\t\tPACKAGE"
+                    + "\n\t\tName : " + pesss.getName()
+                );
+                for(ClassEntity ces : pesss.getClassRelated()){
+                System.out.println("\t\t\tCLASS"
+                    + "\n\t\t\tName : " + ces.getName()
+                );
+                for(ClassEntity ex:ces.getExtendsRelated())
+                    System.out.println("\t\t\t\tEXTEND : " + ex.getName());
+                for(ClassEntity im: ces.getImplementsRelated())
+                    System.out.println("\t\t\t\tIMPLEMENTS : " + im.getName());
+                for(ClassEntity imp: ces.getImportRelated())
+                    System.out.println("\t\t\t\tIMPORT : " + imp.getFQN());
+                for(AnnotatedEntity an:ces.getAnnotatedRelated()){
+                    System.out.println("\t\t\t\tAnnotated : " + an.getName());
+                    for(AnnParaEntity ap: an.getAnnParaRelated())
+                        System.out.println("\t\t\t\tAnnParam : " + ap.getType());
+                }
+                for(MethodEntity me:ces.getMethodRelated()){
+                    System.out.println(
+                            "\t\t\t\tMETHOD : " + me.getDescription()
+                    );
+                    for(AnnotatedEntity anr:me.getAnnotatedRelated()){
+                        System.out.println("\t\t\t\t\tAnnotated : " + anr.getName());
+                    }
+                    for(MethodEntity cr:me.getCallRelated()){
+                        System.out.println("\t\t\t\t\tCall : " + cr.getFQN());
+                    }
+                }
+                }
+                }
+            }
+        }
+    }
 
-    private void setAnnotation(List<CustomAnnotation> annotations, AnnotatedEntity AE) {
-        for(CustomAnnotation ca:annotations){
+    private void setAnnotation(CustomAnnotation CA, AnnotatedEntity AE) {                    
             if(log)
             System.out.println(
                     "@"
-                    + "\nDescription : " + ca.getAnnotationType().getDescription()
-                    + "\nBriefDescription : " + ca.getAnnotationType().getBriefDescription()
-                    + "\nName : " + ca.getAnnotationType().getName()
-                    + "\nPackage : " + ca.getAnnotationType().getPackageName()
-                    + "\nFullName : " + ca.getAnnotationType().getFullName()
+                    + "\nDescription : " + CA.getAnnotationType().getDescription()
+                    + "\nBriefDescription : " + CA.getAnnotationType().getBriefDescription()
+                    + "\nName : " + CA.getAnnotationType().getName()
+                    + "\nPackage : " + CA.getAnnotationType().getPackageName()
+                    + "\nFullName : " + CA.getAnnotationType().getFullName()
             );
-            AE.setName(ca.getAnnotationType().getName());
-            AE.setFQN(ca.getAnnotationType().getFullName());
+            AE.setName(CA.getAnnotationType().getName());
+            AE.setFQN(CA.getAnnotationType().getFullName());
             AE.setType("annotated");
-            AE.setDescription(ca.getAnnotationType().getDescription());
+            AE.setDescription(CA.getAnnotationType().getDescription());
+            
             //import
             setImport(AE.getFQN());
             
-            for (AnnotationParameter ap : ca.getParameters()) {
+            for (AnnotationParameter ap : CA.getParameters()) {
                 if(log)
                 System.out.println(
                         "@P"
                         + "\nMember : " + ap.getMember());
                 AnnParaEntity ape = AE.addAnnParaRelated();
                 ape.setName(ap.getMember());
+                ape.setType(ap.getValue().getElementType().name());
+                
                 switch(ap.getValue().getElementType()){
                     case Annotation:
                         setAnnotationAnnotationElement((AnnotationAnnotationElement)ap.getValue(), ape);
@@ -262,7 +385,6 @@ public class GraphContext {
                         break;
                 }
             }
-        }
     }
         
     private void setMethod(MethodDefinition m,MethodEntity ME) {
@@ -279,7 +401,7 @@ public class GraphContext {
                     + "\nSimpleDescription : " + m.getSimpleDescription()
                     + "\nReturnType : " + m.getReturnType().getFullName()
             );
-            ME.setBriefDescription(m.getBriefDescription());
+            ME.setBriefDescription(m.getBriefDescription());            
             ME.setName(m.getName());
             ME.setType("method");
             ME.setFQN(m.getFullName());
@@ -294,10 +416,11 @@ public class GraphContext {
             setImport(getType(m.getReturnType().getFullName().replaceAll("\\[|\\]", "")));
             
             if(m.hasAnnotations()){
-                setAnnotation(m.getAnnotations(),ME.addAnnotatedRelated());
+                for(CustomAnnotation ca:m.getAnnotations())
+                    setAnnotation(ca,ME.addAnnotatedRelated());
             }
             
-            //body
+            //parametrs
             int count =0;
             for(ParameterDefinition pd:m.getParameters()){                
                 if(log)
@@ -314,17 +437,20 @@ public class GraphContext {
                 mpe.setType("parametr");
                 mpe.setName(pd.getName());
                 mpe.setFQN(pd.getParameterType().getFullName());
-                mpe.setIndex(count);
+                mpe.setIndex(count);                
                 
                 //import
                 setImport(pd.getParameterType().getFullName());
                 
                 if(pd.hasAnnotations()){
-                    setAnnotation(pd.getAnnotations(),mpe.addAnnotatedRelated());
+                    for(CustomAnnotation ca:pd.getAnnotations())
+                        setAnnotation(ca, mpe.addAnnotatedRelated());
                 }
                 count++;
             }
             ME.setCountPara(count);
+            
+            //Body
             if(log)
             System.out.println("\nMB-CODE");
             if(m.getBody()!= null)
@@ -352,10 +478,10 @@ public class GraphContext {
                     + "\nName : " + annotationAnnotationElement.getAnnotation().getAnnotationType().getName()
                     + "\nPackage : " + annotationAnnotationElement.getAnnotation().getAnnotationType().getPackageName()
             );
-        APE.setType("annotated");
-        APE.setName(annotationAnnotationElement.getAnnotation().getAnnotationType().getName());
+                        
         APE.setFQN(annotationAnnotationElement.getAnnotation().getAnnotationType().getFullName());
         APE.setDescription(annotationAnnotationElement.getAnnotation().getAnnotationType().getDescription());
+        APE.setName(annotationAnnotationElement.getAnnotation().getAnnotationType().getName());
         
         //import
         setImport(annotationAnnotationElement.getAnnotation().getAnnotationType().getFullName());
@@ -367,6 +493,8 @@ public class GraphContext {
                         + "\nMember : " + ap.getMember());
             AnnParaEntity ape = APE.addAnnParaRelated();
             ape.setName(ap.getMember());
+            ape.setType(ap.getValue().getElementType().name());
+            
             switch(ap.getValue().getElementType()){
                 case Annotation:
                     setAnnotationAnnotationElement((AnnotationAnnotationElement)ap.getValue(), ape);
@@ -387,10 +515,13 @@ public class GraphContext {
         }
     }
 
-    private void setArrayAnnotationElement(ArrayAnnotationElement arrayAnnotationElement, AnnParaEntity APE) {
-        APE.setType("array");
+    private void setArrayAnnotationElement(ArrayAnnotationElement arrayAnnotationElement, AnnParaEntity APE) {        
+        int i=0;
         for(AnnotationElement ae : arrayAnnotationElement.getElements()){
-            AnnParaEntity ape = APE.addAnnParaRelated();            
+            AnnParaEntity ape = APE.addAnnParaRelated();
+            ape.setType(ae.getElementType().name());
+            ape.setIndex(i);
+            i++;
             switch(ae.getElementType()){
                 case Annotation:                    
                     setAnnotationAnnotationElement((AnnotationAnnotationElement)ae,ape);
@@ -412,23 +543,24 @@ public class GraphContext {
     }
 
     private void setConstantAnnotationElement(ConstantAnnotationElement constantAnnotationElement, AnnParaEntity APE) {
-        APE.setType("constant");
-        APE.setValue((String) constantAnnotationElement.getConstantValue());
         if(log)
         System.out.println(
                 "ConstantAnnotationElement"
                 + "\nValue : " + constantAnnotationElement.getConstantValue()                
         );
+        
+            APE.setValue((String) constantAnnotationElement.getConstantValue());
     }
 
-    private void setClassAnnotationElement(ClassAnnotationElement classAnnotationElement,AnnParaEntity APE) {
-        APE.setValue(classAnnotationElement.getClassType().getName());
+    private void setClassAnnotationElement(ClassAnnotationElement classAnnotationElement,AnnParaEntity APE) {        
         if(log)
         System.out.println(
                 "ClassAnnotationElement"
                 + "" + classAnnotationElement.getClassType().getName()
                 + "" + classAnnotationElement.getClassType().getFullName()
         );
+        
+        APE.setValue(classAnnotationElement.getClassType().getName());
     }
 
     private void setEnumAnnotationElementType(EnumAnnotationElement enumAnnotationElement,AnnParaEntity APE) {
@@ -458,7 +590,7 @@ public class GraphContext {
         String Class = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll("\\..*", "");
         String Method = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\.", "").replaceAll(":\\(.*", "");
         String Param = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*:\\(", "").replaceAll("\\).*", "");
-        String Return =INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\)", "");
+        String Return =INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\)", "").replaceAll("/", ".");
         String FQN = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(":\\(.*", "");
         
         List<String> result = convertType(Param);
@@ -467,8 +599,14 @@ public class GraphContext {
         String Brief = (ret.isEmpty() ? "void" : ret.get(ret.size()-1))
                 + " " + Method + "(" + 
                 (result.isEmpty()?"":result.toString()).replaceAll("(^\\[)|(\\]$)", "").replaceAll("/", ".")
-                + ")" ;
+                + ")" ;                
         
+        if(FQN.compareTo("java/lang/Object.<init>") == 0){
+            return;
+        }
+        if(ME.getCallRelated(FQN) != null){
+            return;
+        }
         for(Vertex v :graph.getVertices()){
             if(v.getProperty("fqn") != null && v.getProperty("fqn").toString().compareTo(FQN) == 0){
                 MethodEntity meqt = framed.frame(v, MethodEntity.class);
@@ -477,8 +615,7 @@ public class GraphContext {
                     return;
                 }
             }
-        }
-        
+        }        
         MethodEntity me =  (MethodEntity) framed.frame(graph.addVertex(null), MethodEntity.class);        
         me.setName(Method);
         me.setType("method");
@@ -599,12 +736,14 @@ public class GraphContext {
             paths = CE.getFQN().replaceFirst(CE.getName().replaceAll("\\$1", ".") + "$", "").split("\\.");
             
         }else{
-            paths= CE.getFQN().replaceFirst("\\..*$", "").split(".");
+            paths= CE.getFQN().replaceFirst("\\.\\w*$", "").split("\\.");
             
         }        
-        
+//        for(String s:paths){
+//                System.out.println(s);
+//            }
         PackageEntity pe = null;
-        if(paths.length == 0){
+        if(paths.length == 0){            
             _jar.addClassRelated(CE);
             return;
         }else{            
@@ -630,13 +769,23 @@ public class GraphContext {
         pe.addClassRelated(CE);
     }
 
-    private void setImport(String fullName) {
-        if(fullName == null || fullName.compareTo("") == 0)
-            return;        
-        if(_tmp.getFQN().replaceFirst("\\.\\w*$", "").compareTo(fullName.replaceFirst("\\.\\w*$", "")) == 0)
+    private void setImport(String fullName) {        
+        if(fullName == null)
             return;
+        fullName = fullName.replaceAll("[\\[\\]]", "");
+        if( fullName.compareTo("") == 0 || !fullName.contains(".")
+                || fullName.compareTo("java.lang.String") == 0){
+            return;
+        }        
+        if(_tmp.getFQN().replaceFirst("\\.\\w*$", "").compareTo(fullName.replaceFirst("\\.\\w*$", "")) == 0){
+            return;
+        }
         if(_tmp.getImportRelated(fullName) == null){
             _tmp.addImportRelated(getClass(fullName));
+            
+            //is Static Import
+            //ImportRelated ie = _tmp.getImportEdge(fullName);            
+            //ie.setStatic(true);                            
         }
     } 
 
@@ -659,4 +808,64 @@ public class GraphContext {
             }
         return null;
     }
+    
+    
+    
+    /* 
+    *   Èást volana queryExecute
+    */
+    
+    public  List<ClassEntity> getClassInPackage(String text) {
+        
+        if(text.compareTo("*") == 0){ //vrat vsechny tridy v jar souboru
+            List<ClassEntity> result = new ArrayList();
+            for(PackageEntity pr:_jar.getPackageRelated()){
+                result.addAll(getRecursion(pr));
+            }
+            return result;
+        }
+        
+        String [] paths = text.replaceAll("'", "").split("\\.");
+        PackageEntity pe = _jar.getPackageRelated(paths[0]);
+        
+        if(pe == null){   //Error balik neexistuje
+            error = true;            
+            return null;
+        }
+        
+        for(int i = 1; i < paths.length; i++) {
+            pe = pe.getPackageRelated(paths[i]);
+            if(pe == null){  //Error balik neesixtuje
+                return null; 
+            }
+        }      
+        return Lists.newArrayList( pe.getClassRelated());
+    }
+
+    public  List<ClassEntity> getClassInPackageRecursion(String text) {
+        String [] paths = text.replaceAll("'", "").split("\\.");
+        PackageEntity pe = _jar.getPackageRelated(paths[0]);        
+        
+        if(pe == null){   //Error balik neexistuje
+            error = true;            
+            return null;
+        }
+        
+        for(int i = 1; i < paths.length; i++) {
+            pe = pe.getPackageRelated(paths[i]);
+            if(pe == null){  //Error balik neesixtuje
+                return null; 
+            }
+        }        
+        return getRecursion(pe);
+    }
+    
+    private List<ClassEntity> getRecursion(PackageEntity PE){
+        List<ClassEntity> result = Lists.newArrayList( PE.getClassRelated());
+        for(PackageEntity pe:PE.getPackageRelated()){
+            result.addAll(getRecursion(pe));
+        }
+        return result;
+    }        
+    
 }

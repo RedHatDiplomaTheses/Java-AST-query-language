@@ -7,6 +7,8 @@ package com.queryToAST.app.Graph.Vertex;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
+import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
+import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
@@ -15,6 +17,12 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 //@TypeValue("method")
 public interface MethodEntity extends BaseEntity{
+    
+    @GremlinGroovy("it.as('x').out('callRelated').except('x').has('fqn',fqn)")
+    public MethodEntity getCallRelated(@GremlinParam("fqn") String fqn);    
+    
+    @GremlinGroovy("it.in('callRelated')")
+    public Iterable<MethodEntity> getInCallRelated();
     
     @Property("countPara")
     public void setCountPara(int count);
@@ -26,6 +34,8 @@ public interface MethodEntity extends BaseEntity{
     @Property("briefDescription")
     public String getBriefDescription();
     
+    @Adjacency(label = "methodRelated", direction=Direction.IN)
+    ClassEntity getInClassRelated();
     
     //parametr
     @Adjacency(label= "methParaRelated",direction=Direction.OUT)
@@ -42,6 +52,10 @@ public interface MethodEntity extends BaseEntity{
     MethodEntity addCallRelated (MethodEntity methodRelated);  //Add an existing Vertex    
     @Adjacency(label = "callRelated", direction=Direction.OUT)
     Iterable<MethodEntity> getCallRelated();
+    
+    //@Adjacency(label = "callRelated", direction=Direction.IN)
+    //MethodEntity getInCallRelated();
+    //Iterable<MethodEntity> getInCallRelated();
     
     //annotation
     @Adjacency(label= "annotatedRelated",direction=Direction.OUT)

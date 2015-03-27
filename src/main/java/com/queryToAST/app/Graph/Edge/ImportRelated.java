@@ -4,6 +4,8 @@
  */
 package com.queryToAST.app.Graph.Edge;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.frames.Incidence;
 import com.tinkerpop.frames.Property;
 
 /**
@@ -14,5 +16,5 @@ public interface ImportRelated extends BaseRelated{
     @Property("static")
     public void setStatic(boolean value);
     @Property("static")
-    public boolean getStatic(boolean no);
+    public boolean getStatic();        
 }

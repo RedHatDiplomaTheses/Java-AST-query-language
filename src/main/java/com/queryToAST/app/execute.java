@@ -6,6 +6,7 @@
 package com.queryToAST.app;
 
 import com.queryToAST.app.Graph.GraphContext;
+import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import com.queryToAST.app.Metadata.JarMetadata;
 import com.queryToAST.app.QueryLanguage.queryExecute;
 import com.queryToAST.app.QueryLanguage.queryLexer;
@@ -31,12 +32,15 @@ public class execute {
         new JarMetadata(path, _graphContext);   
     }
     
-    public List<Vertex> query(String query){
+    public List<ClassEntity> query(String query){
         if(log)
         _graphContext.PrintVertex();
+        
         if(log)
         _graphContext.PrintEdge();
         
+        if(log)
+        _graphContext.PrintGraph();
         // create a CharStream that reads from standard input
         ANTLRInputStream input = new ANTLRInputStream(query);
         
@@ -54,10 +58,10 @@ public class execute {
         ParseTreeWalker walker = new ParseTreeWalker();
         // create listener then feed to walker
         queryExecute execute = new queryExecute();
+        execute.setContext(_graphContext);
         walker.walk(execute, tree); // walk parse tree
-        
-        //System.out.println(execute.); // print results
-        return null;
+                
+        return execute.getResult();
     }
         
 }

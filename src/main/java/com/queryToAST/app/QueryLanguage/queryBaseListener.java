@@ -114,6 +114,30 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterEqual(queryParser.EqualContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitEqual(queryParser.EqualContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAssignment(queryParser.AssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAssignment(queryParser.AssignmentContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterInnerSelect(queryParser.InnerSelectContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -174,6 +198,18 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAnnotatedName(queryParser.AnnotatedNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAnnotatedName(queryParser.AnnotatedNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterAnnotatedParams(queryParser.AnnotatedParamsContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -181,18 +217,6 @@ public class queryBaseListener implements queryListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterParamAnnotated(queryParser.ParamAnnotatedContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitParamAnnotated(queryParser.ParamAnnotatedContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

@@ -1,11 +1,11 @@
 grammar query;
 
 program : selectStatment;
-selectStatment : (SELECT  paramSelect)? (FROM  packages)? (WHERE conditions)? (ORDER_BY STRING)?;
+selectStatment : (SELECT  paramSelect)? (FROM  packages)? (WHERE conditions)?;
 
 paramSelect : paramName (COMMA paramName)* ;
 
-paramName : EXCLAMANTION NAME (LBRACKET method RBRACKET)? | NAME (LBRACKET method RBRACKET)? | STAR ;
+paramName : EXCLAMANTION NAME | NAME (LBRACKET method RBRACKET)? | STAR ;
 
 packages : (packageName (COMMA packageName)* | STAR) ;
 
@@ -13,49 +13,38 @@ packageName : (STRING | EXCLAMANTION STRING) ;
 
 conditions : cond (AND cond)* ;
 
-cond : NAME (OPERATORS STRING)
-    | NAME (LBRACKET STRING LBRACKET)* OPERATORS innerSelect
-    | '!' NAME | NAME | annotated ;
-
+cond : equal | assignment | innerSelect | innerSelect OPERATORS NAME | '!' NAME | NAME ;
+    
+equal : NAME OPERATORS STRING | NAME OPERATORS ID_SLASH | annotated OPERATORS STRING | annotated OPERATORS ID_SLASH | annotated;
+    
+assignment : ID_DOLLAR COLON NAME | ID_DOLLAR COLON annotated |  ID_DOLLAR COLON ID_SLASH ;
+    
 innerSelect : LPAREN selectStatment RPAREN ;
 
-annotated : CC AT annotatedStatment
-    | MM LBRACKET method RBRACKET AT annotatedStatment
-    | PP LBRACKET method RBRACKET DOT index  AT annotatedStatment
-    ;
+annotated : annotatedStatment | MM LBRACKET method RBRACKET index? annotatedStatment ;
 
-method : STRING | STRING COLON STRING (COMMA STRING COLON STRING)*;
+method : STRING | NAME COLON STRING (COMMA NAME COLON STRING)*;
 
 index : LBRACKET INT RBRACKET;
 
-annotatedStatment : LBRACKET STRING RBRACKET (DOT LBRACKET annotatedParams RBRACKET)?;
+annotatedStatment : annotatedName (DOT annotatedParams )*;
 
-annotatedParams : paramAnnotated (COMMA paramAnnotated)* ;
+annotatedName : AT NAME ;
 
-paramAnnotated : STRING                              //parametr value
-    | STRING COLON STRING                     //parametr object
-    | STRING COLON LBRACE annotatedParams RBRACE   //parametr object array
-    | STRING COLON annotatedStatment //parametr annotation
-    | annotatedStatment
-    ;
+annotatedParams : annotatedName | NAME index? ;
 
-SELECT: [Ss][Ee][Ll][Ee][Cc][Tt];
 
-FROM : [Ff][Rr][Oo][Mm];
+SELECT: '#' ;    //[Ss][Ee][Ll][Ee][Cc][Tt];
 
-WHERE: [Ww][Hh][Ee][Rr][Ee] ;
+FROM : '<' ;    //[Ff][Rr][Oo][Mm];
 
-AND : [Aa][Nn][Dd] ;
+WHERE: '?' ;    //[Ww][Hh][Ee][Rr][Ee] ;
+
+AND : '&&' ;     //[Aa][Nn][Dd] ;
 
 OPERATORS : ('='|'!='|'~'|[Ii][Nn]) ;
 
-ORDER_BY : [Oo][Rr][Dd][Ee][Rr](' '*)[Bb][Yy] ;
-
-CC : [Cc] ;
-
 MM : [Mm] ;
-
-PP : [Pp] ;
 
 COLON : ':' ;
 
@@ -69,10 +58,6 @@ LPAREN : '(' ;
 
 RPAREN : ')' ;
 
-LBRACE : '{' ;
-
-RBRACE : '}' ;
-
 EXCLAMANTION : '!' ;
 
 STAR : '*' ;
@@ -81,13 +66,19 @@ AT : '@' ;
 
 DOT : '.' ;
 
+ID_DOLLAR : DOLLAR DIGIT ;
+fragment DOLLAR : '$' ; 
+
+ID_SLASH : SLASH DIGIT ;
+fragment SLASH : '\\' ;
+
 INT : DIGIT+ ;
 fragment DIGIT : '0'..'9' ;
 
 NAME : LETTER+ ;
 fragment LETTER: ('a'..'z'|'A'..'Z');
 
-STRING : '"' ( ESC | . )*? '"' ;
+STRING : '\'' ( ESC | . )*? '\'' ;
 fragment ESC : '\\' [btnr"\\] ; // \b, \t, \n etc...
 
 WS : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines

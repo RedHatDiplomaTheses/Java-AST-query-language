@@ -4,6 +4,7 @@
  */
 package com.queryToAST.app.Graph.Vertex;
 
+import com.queryToAST.app.Graph.Edge.ImportRelated;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
@@ -22,10 +23,16 @@ public interface ClassEntity extends BaseEntity{
     public ClassEntity getClassRelated(@GremlinParam("name") String name);
     
     @GremlinGroovy("it.as('x').out('methodRelated').except('x').has('name',name)")
-    public MethodEntity getMethodRelated(@GremlinParam("name") String name);
+    public Iterable<MethodEntity> getMethodRelated(@GremlinParam("name") String name);
     
     @GremlinGroovy("it.as('x').out('importRelated').except('x').has('fqn',fqn)")
     public ClassEntity getImportRelated(@GremlinParam("fqn") String fqn);
+    
+    @GremlinGroovy("it.outE('importRelated').as('x').inV.has('fqn',fqn).except('x')")
+    public ImportRelated getImportEdge(@GremlinParam("fqn") String fqn);
+    
+    @GremlinGroovy("it.as('x').out('annotatedRelated').except('x').has('name',name)")
+    public AnnotatedEntity getAnnotatedRelated(@GremlinParam("name") String name);
     
     @Property("inner")
     public void setInner(boolean inner);
@@ -38,7 +45,7 @@ public interface ClassEntity extends BaseEntity{
     @Adjacency(label= "methodRelated",direction=Direction.OUT)
     MethodEntity addMethodRelated (MethodEntity methodRelated);  //Add an existing Vertex    
     @Adjacency(label = "methodRelated", direction=Direction.OUT)
-    Iterable<MethodEntity> getMethodRelated();
+    Iterable<MethodEntity> getMethodRelated();    
     
     //Annotation
     @Adjacency(label= "annotatedRelated",direction=Direction.OUT)
@@ -55,6 +62,8 @@ public interface ClassEntity extends BaseEntity{
     ClassEntity addImportRelated (ClassEntity classRelated);  //Add an existing Vertex    
     @Adjacency(label = "importRelated", direction=Direction.OUT)
     Iterable<ClassEntity> getImportRelated();
+    @Adjacency(label = "importRelated", direction=Direction.IN)
+    Iterable<ClassEntity> getInImportRelated();
     
     //extends
     @Adjacency(label= "extendsRelated",direction=Direction.OUT)
@@ -63,6 +72,8 @@ public interface ClassEntity extends BaseEntity{
     ClassEntity addExtendsRelated (ClassEntity classRelated);  //Add an existing Vertex    
     @Adjacency(label = "extendsRelated", direction=Direction.OUT)
     Iterable<ClassEntity> getExtendsRelated();
+    @Adjacency(label = "extendsRelated", direction=Direction.IN)
+    Iterable<ClassEntity> getInExtendsRelated();
     
     //implements
     @Adjacency(label= "implementsRelated",direction=Direction.OUT)
@@ -71,6 +82,8 @@ public interface ClassEntity extends BaseEntity{
     ClassEntity addImplementsdRelated (ClassEntity classRelated);  //Add an existing Vertex    
     @Adjacency(label = "implementsRelated", direction=Direction.OUT)
     Iterable<ClassEntity> getImplementsRelated();
+    @Adjacency(label = "implementsRelated", direction=Direction.IN)
+    Iterable<ClassEntity> getInImplementsRelated();
     
     //inner Class
     @Adjacency(label= "classRelated",direction=Direction.OUT)
@@ -79,4 +92,6 @@ public interface ClassEntity extends BaseEntity{
     ClassEntity addClassRelated (ClassEntity classRelated);  //Add an existing Vertex    
     @Adjacency(label = "classRelated", direction=Direction.OUT)
     Iterable<ClassEntity> getClassRelated();
+    @Adjacency(label = "classRelated", direction=Direction.IN)
+    Iterable<ClassEntity> getInClassRelated();
 }

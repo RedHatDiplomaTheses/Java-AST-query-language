@@ -6,6 +6,8 @@ package com.queryToAST.app.Graph.Vertex;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.frames.Adjacency;
+import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
+import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
 import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
@@ -14,6 +16,10 @@ import com.tinkerpop.frames.modules.typedgraph.TypeValue;
  */
 //@TypeValue("class")
 public interface AnnotatedEntity extends BaseEntity{
+    
+    @GremlinGroovy("it.as('x').out('annParaRelated').except('x').has('name',name)")
+    public AnnParaEntity getAnnParaRelated(@GremlinParam("name") String name);
+    
     //add
     @Adjacency(label= "annParaRelated",direction=Direction.OUT)
     AnnParaEntity addAnnParaRelated (); //Return new Vertex    

@@ -90,6 +90,26 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitCond(queryParser.CondContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link queryParser#equal}.
+	 * @param ctx the parse tree
+	 */
+	void enterEqual(queryParser.EqualContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#equal}.
+	 * @param ctx the parse tree
+	 */
+	void exitEqual(queryParser.EqualContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link queryParser#assignment}.
+	 * @param ctx the parse tree
+	 */
+	void enterAssignment(queryParser.AssignmentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#assignment}.
+	 * @param ctx the parse tree
+	 */
+	void exitAssignment(queryParser.AssignmentContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link queryParser#innerSelect}.
 	 * @param ctx the parse tree
 	 */
@@ -140,6 +160,16 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link queryParser#annotatedName}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotatedName(queryParser.AnnotatedNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#annotatedName}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotatedName(queryParser.AnnotatedNameContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link queryParser#annotatedParams}.
 	 * @param ctx the parse tree
 	 */
@@ -149,14 +179,4 @@ public interface queryListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#paramAnnotated}.
-	 * @param ctx the parse tree
-	 */
-	void enterParamAnnotated(queryParser.ParamAnnotatedContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#paramAnnotated}.
-	 * @param ctx the parse tree
-	 */
-	void exitParamAnnotated(queryParser.ParamAnnotatedContext ctx);
 }
