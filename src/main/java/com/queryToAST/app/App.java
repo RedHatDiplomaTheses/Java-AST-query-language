@@ -14,7 +14,7 @@ public class App
         String internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
         execute exec = new execute(internalName);        
      
-        List<ClassEntity> result = exec.query("? name='Protokol' && @Dependencies.value[0].@Dependency.value='zavislost'");
+        List<ClassEntity> result = exec.query("? (? fqn='langTest.One.imp.Classes2') in name");
         for(ClassEntity ce : result){
             System.out.println("FQN : " + ce.getFQN());
         }

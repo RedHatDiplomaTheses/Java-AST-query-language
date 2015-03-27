@@ -33,6 +33,12 @@ public interface ClassEntity extends BaseEntity{
     
     @GremlinGroovy("it.as('x').out('annotatedRelated').except('x').has('name',name)")
     public AnnotatedEntity getAnnotatedRelated(@GremlinParam("name") String name);
+        
+    @GremlinGroovy("it.as('x').out('extendsRelated').except('x').has('fqn',fqn)")
+    ClassEntity getExtendsRelated(@GremlinParam("fqn") String fqn);
+    
+    @GremlinGroovy("it.as('x').out('implementsRelated').except('x').has('fqn',fqn)")
+    ClassEntity getImplementsRelated(@GremlinParam("fqn") String fqn);
     
     @Property("inner")
     public void setInner(boolean inner);

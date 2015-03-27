@@ -26,6 +26,7 @@ public class queryExecute extends queryBaseListener{
     private List<LangContext> _langContext = new ArrayList();    
     private int _depth = 0;        
     private List<AnnParaEntity> tmpAnnValue;
+    
     public GraphContext getContext() {
         return _graphContext;
     }
@@ -59,6 +60,10 @@ public class queryExecute extends queryBaseListener{
     }
 
     
+    @Override
+    public void exitInnerSelect(queryParser.InnerSelectContext ctx) {        
+        _depth--;
+    }
     
     @Override
     public void exitAnnotated(queryParser.AnnotatedContext ctx) {
@@ -401,17 +406,121 @@ public class queryExecute extends queryBaseListener{
             }
             else if (ctx.innerSelect() != null)
             {
-                
+                if(_langContext.get(_depth + 1).result == null)
+                {
+                    tmp = null;
+                }
             }       
         }
-        if(ctx.getChildCount()==3)
+        if(ctx.getChildCount() == 3) //inner (innetSelect) OPERATORS NAME
         {
             if(ctx.NAME() != null)
             {
-                if(ctx.NAME().getText().compareToIgnoreCase("name") == 0)
+                if(ctx.NAME().getText().compareToIgnoreCase("import") == 0)
                 {
-                    
-                }                
+                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
+                    {
+                        for(ClassEntity ce:_langContext.get(_depth).result)
+                        {
+                            boolean isImport = true;
+                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
+                            {
+                                if(ce.getImportRelated(ce2.getFQN()) == null)
+                                {
+                                    isImport = false;
+                                }
+                            }
+                            if(isImport)
+                            {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
+                else if(ctx.NAME().getText().compareToIgnoreCase("extend") == 0)
+                {
+                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
+                    {
+                        for(ClassEntity ce:_langContext.get(_depth).result)
+                        {
+                            boolean isTrue = true;
+                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
+                            {
+                                if(ce.getExtendsRelated(ce2.getFQN()) == null)
+                                {
+                                    isTrue = false;
+                                }
+                            }
+                            if(isTrue)
+                            {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
+                else if(ctx.NAME().getText().compareToIgnoreCase("implements") == 0)
+                {
+                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
+                    {
+                        for(ClassEntity ce:_langContext.get(_depth).result)
+                        {
+                            boolean isTrue = true;
+                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
+                            {
+                                if(ce.getImplementsRelated(ce2.getFQN()) == null)
+                                {
+                                    isTrue = false;
+                                }
+                            }
+                            if(isTrue)
+                            {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
+                else if(ctx.NAME().getText().compareToIgnoreCase("name") == 0)
+                {
+                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
+                    {
+                        for(ClassEntity ce:_langContext.get(_depth).result)
+                        {
+                            boolean isTrue = true;
+                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
+                            {
+                                if(ce.getName().compareTo(ce2.getName()) != 0)
+                                {
+                                    isTrue = false;
+                                }
+                            }
+                            if(isTrue)
+                            {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
+                else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0)
+                {
+                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
+                    {
+                        for(ClassEntity ce:_langContext.get(_depth).result)
+                        {
+                            boolean isTrue = true;
+                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
+                            {
+                                if(ce.getFQN().compareTo(ce2.getFQN()) != 0)
+                                {
+                                    isTrue = false;
+                                }
+                            }
+                            if(isTrue)
+                            {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
             }
         }
         _langContext.get(_depth).result = tmp;
@@ -605,6 +714,11 @@ public class queryExecute extends queryBaseListener{
         {            
             _langContext.get(_depth).result = tmp;
         }
+    }
+
+    @Override
+    public void enterInnerSelect(queryParser.InnerSelectContext ctx) {
+        _depth++;
     }
 
     @Override

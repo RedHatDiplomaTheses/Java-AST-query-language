@@ -568,6 +568,7 @@ public class GraphContext {
         APE.setType("enum");
         APE.setFQN(enumAnnotationElement.getEnumType().getFullName());
         APE.setDescription(enumAnnotationElement.getEnumType().getFullName() + "." + enumAnnotationElement.getEnumType().getFullName());
+        setImport(enumAnnotationElement.getEnumType().getFullName());
         if(log)
         System.out.println(
             "\nEnumValue"
@@ -599,8 +600,9 @@ public class GraphContext {
         String Brief = (ret.isEmpty() ? "void" : ret.get(ret.size()-1))
                 + " " + Method + "(" + 
                 (result.isEmpty()?"":result.toString()).replaceAll("(^\\[)|(\\]$)", "").replaceAll("/", ".")
-                + ")" ;                
+                + ")" ;
         
+        setImport(Class.replaceAll("/", "."));
         if(FQN.compareTo("java/lang/Object.<init>") == 0){
             return;
         }
@@ -774,7 +776,9 @@ public class GraphContext {
             return;
         fullName = fullName.replaceAll("[\\[\\]]", "");
         if( fullName.compareTo("") == 0 || !fullName.contains(".")
-                || fullName.compareTo("java.lang.String") == 0){
+                || fullName.compareTo("java.lang.String") == 0
+                || fullName.compareTo("java.lang.Object") == 0
+                || fullName.compareTo("java.lang.UnsupportedOperationException") == 0){
             return;
         }        
         if(_tmp.getFQN().replaceFirst("\\.\\w*$", "").compareTo(fullName.replaceFirst("\\.\\w*$", "")) == 0){
