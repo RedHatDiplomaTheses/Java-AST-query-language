@@ -23,9 +23,11 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  */
 public class queryExecute extends queryBaseListener{
     private GraphContext _graphContext = null;
-    private List<LangContext> _langContext = new ArrayList();    
-    private int _depth = 0;        
-    private List<AnnParaEntity> tmpAnnValue;
+    private List<LangContext> _langContext = new ArrayList();
+    private int _depth = 0;
+    private List<AnnParaEntity> _annotated;
+    private int _index = -1;
+    private List<MethodEntity> _method = null;
     
     public GraphContext getContext() {
         return _graphContext;
@@ -67,9 +69,8 @@ public class queryExecute extends queryBaseListener{
     
     @Override
     public void exitAnnotated(queryParser.AnnotatedContext ctx) {
-        if(_langContext.get(_depth).error) return;
-        tmpAnnValue = new ArrayList();
-        
+        if(_langContext.get(_depth).error) return;        
+        _annotated = new ArrayList();        
         List<ClassEntity> tmp = new ArrayList();
         queryParser.AnnotatedStatmentContext as = ctx.annotatedStatment();
         String name = as.annotatedName().NAME().getText();        
@@ -79,7 +80,62 @@ public class queryExecute extends queryBaseListener{
             boolean isAE = true;
             boolean isAnnotated = true;
             AnnParaEntity ann = null;
-            AnnotatedEntity ar = ce.getAnnotatedRelated(name);
+            AnnotatedEntity ar = null;
+            
+            if(ctx.MM() != null)
+            {
+                if(ctx.getChildCount()!=1){
+                    for(int i =0; i < ctx.getChildCount();i++){
+                        //rozèíøení dotazy na casti methody !!!
+                    }
+                }
+                else
+                {
+                    String strTMP = ctx.method().STRING(0).getText().replaceAll("[' ]", "");
+                    String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
+                    String[] paramTMP = {};
+
+                    if(paramsTMP.compareTo("") != 0)
+                        paramTMP = paramsTMP.split(",");
+
+                    String method = strTMP.replaceFirst("\\(.*", "");
+
+                    for(ClassEntity re:_langContext.get(_depth).result)
+                    {
+                        for(MethodEntity me:re.getMethodRelated(method))
+                        {   
+                            if(me.getCountPara() != paramTMP.length)
+                            {
+                                continue;
+                            }
+                            boolean isTrueMethod=true;
+                            for(MethParaEntity mpr:me.getMethParaRelated())
+                            {
+                                if(mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0)
+                                {                                                                                    
+                                    isTrueMethod = false;
+                                }
+                            }
+                            if(isTrueMethod)
+                            {
+                                _method.add(me);
+                            }
+                        }
+                    }
+                }
+                if(ctx.index() != null) //m['method'][index]@annotated...
+                {
+                    
+                }
+                else    // m['method']@annotated...
+                {
+                    
+                }
+            }
+            else{
+                ar = ce.getAnnotatedRelated(name);
+            }
+            
             if(ar != null)  //@NAME
             {
                 for(int i = 0; i < as.annotatedParams().size(); i++)
@@ -168,14 +224,14 @@ public class queryExecute extends queryBaseListener{
                 }
             }
             else
-            {
-                isAnnotated = false;
-                break;
+            {                
+               continue;
             }
+            
             
             if(isAnnotated)
             {
-                tmpAnnValue.add(ann);
+                _annotated.add(ann);
                 tmp.add(ce);
             }
         }
@@ -186,17 +242,33 @@ public class queryExecute extends queryBaseListener{
     public void exitAssignment(queryParser.AssignmentContext ctx) {
         if(_langContext.get(_depth).error) return;
         
-        if(ctx.NAME() != null)
+        if(ctx.NAME() != null)  // $1:NAME
         {
-            _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), ctx.NAME().getText());
+            if(ctx.NAME().getText().compareToIgnoreCase("name") == 0) // $1:name
+            {
+                for(ClassEntity ce:_langContext.get(_depth).result)
+                {
+                    _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), ce.getName());
+                }
+            }
+            else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0) // $1:fqn
+            {
+                for(ClassEntity ce:_langContext.get(_depth).result)
+                {
+                    _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), ce.getFQN());
+                }
+            }            
         }
-        else if(ctx.ID_SLASH() != null)
+        else if(ctx.ID_SLASH() != null) // $1:\1
         {
-            _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), ctx.NAME().getText());
+            for(String str:_langContext.get(_depth).id.get(ctx.NAME().getText()))
+            {
+                _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), str);
+            }
         }
         else if(ctx.annotated() != null)
         {
-            for(AnnParaEntity tav:tmpAnnValue)
+            for(AnnParaEntity tav:_annotated)
             {
                 if(tav.getValue() != null)
                 {
@@ -220,14 +292,14 @@ public class queryExecute extends queryBaseListener{
             {
                 for(ClassEntity ce :_langContext.get(_depth).result)
                 {
-                    if(ctx.NAME().getText().compareToIgnoreCase("name") == 0)
+                    if(ctx.NAME().getText().compareToIgnoreCase("name") == 0) // name = STRING
                     {
                         if(ce.getName().compareTo(ctx.STRING().getText().replaceAll("'", "")) == 0)
                         {
                             tmp.add(ce);                            
                         }
                     }
-                    else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0)
+                    else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0) // fqn = STRING
                     {
                         if(ce.getFQN().compareTo(ctx.STRING().getText().replaceAll("'", "")) == 0)
                         {
@@ -236,26 +308,15 @@ public class queryExecute extends queryBaseListener{
                     }
                 }
             }
-            else if(ctx.ID_SLASH() != null) //name = \1
-            {
-                for(ClassEntity ce : _langContext.get(_depth).result)
+            else if(ctx.ID_SLASH() != null) //NAME = \1
+            {                
+                if(ctx.NAME().getText().compareToIgnoreCase("name") == 0) //name = \1
                 {
-                    if(ctx.NAME().getText().compareToIgnoreCase("name") == 0)
+                    for(ClassEntity ce : _langContext.get(_depth).result)
                     {
-                        for( AnnParaEntity tav : tmpAnnValue)
+                        for(String str : _langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
                         {                        
-                            if(tav.getValue().compareTo(ce.getName())==0)
-                            {
-                                tmp.add(ce);
-                                break;
-                            }
-                        }
-                    }
-                    else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0)
-                    {
-                        for( AnnParaEntity tav : tmpAnnValue)
-                        {                        
-                            if(tav.getValue().compareTo(ce.getFQN())==0)
+                            if(str.compareTo(ce.getName()) == 0)
                             {
                                 tmp.add(ce);
                                 break;
@@ -263,30 +324,43 @@ public class queryExecute extends queryBaseListener{
                         }
                     }
                 }
+                else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0) //fqn = \1
+                {
+                    for(ClassEntity ce : _langContext.get(_depth).result)
+                    {
+                        for(String str : _langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
+                        {                        
+                            if(str.compareTo(ce.getFQN())==0)
+                            {
+                                tmp.add(ce);
+                                break;
+                            }
+                        }
+                    }
+                }                
             }
         }
         else if(ctx.annotated() != null)
         {
             if(ctx.STRING() != null)    //@annotation.value = STRING
             {
-                for(int i =0; i < tmpAnnValue.size() ; i++)
+                for(int i =0; i < _annotated.size() ; i++)
                 {
-                    if(tmpAnnValue.get(i).getValue() != null && ctx.STRING()
-                            .getText().replaceAll("'","").compareTo(tmpAnnValue.get(i).getValue()) == 0)
+                    if(_annotated.get(i).getValue() != null && ctx.STRING().getText().replaceAll("'","").compareTo(_annotated.get(i).getValue()) == 0)
                     {                        
                         tmp.add(_langContext.get(_depth).result.get(i));
                     }
                 }
             }
-            else if(ctx.ID_SLASH() != null) //@annotation.value = \1
+            else if(ctx.ID_SLASH() != null) // @annotation.value = \1
             {
-                for(int i =0; i < tmpAnnValue.size() ; i++)
+                for(int i =0; i < _annotated.size() ; i++)
                 {
-                    if(tmpAnnValue.get(i).getValue()!= null)
+                    if(_annotated.get(i).getValue()!= null)
                     {
-                        for(String str:_langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
+                        for(String str : _langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
                         {
-                            if(str.compareTo(tmpAnnValue.get(i).getValue()) == 0)
+                            if(str.compareTo(_annotated.get(i).getValue()) == 0)
                             {
                                 tmp.add(_langContext.get(_depth).result.get(i));
                                 break;
@@ -295,8 +369,8 @@ public class queryExecute extends queryBaseListener{
                     }
                 }
             }
-            else
-            {
+            else    // @annotation
+            {                
                 return;
             }
         }
@@ -617,7 +691,7 @@ public class queryExecute extends queryBaseListener{
                 }
                 else if(select.STAR() != null)
                 {
-                    //bere vse takze nic nedela
+                    tmp.addAll(_langContext.get(_depth).result);
                 }                
             }
             else if(select.getChildCount() ==  2)
@@ -672,22 +746,23 @@ public class queryExecute extends queryBaseListener{
                         }
                         else
                         {
-                            String strTMP = select.method().STRING(0).getText().replaceAll("[\" ]", "");
-                            String paramsTMP = strTMP.replaceFirst("^\\w*", "").replaceAll("[)(]", "");
+                            String strTMP = select.method().STRING(0).getText().replaceAll("[' ]", "");
+                            String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
                             String[] paramTMP = {};
+                            
                             if(paramsTMP.compareTo("") != 0)
-                                paramTMP = paramsTMP.split(",");                            
+                                paramTMP = paramsTMP.split(",");
+                            
                             String name = strTMP.replaceFirst("\\(.*", "");
                             
                             for(ClassEntity re:_langContext.get(_depth).result)
-                            {                                
+                            {
                                 for(MethodEntity me:re.getMethodRelated(name))
                                 {   
                                     if(me.getCountPara() != paramTMP.length)
                                     {
                                         continue;
                                     }
-                                    
                                     boolean isTrueMethod=true;
                                     for(MethParaEntity mpr:me.getMethParaRelated())
                                     {
@@ -711,9 +786,14 @@ public class queryExecute extends queryBaseListener{
             }          
         }
         if(!_langContext.get(_depth).selectList.isEmpty())
-        {            
+        {
             _langContext.get(_depth).result = tmp;
         }
+    }
+
+    @Override
+    public void exitIndex(queryParser.IndexContext ctx) {
+        _index = Integer.parseInt(ctx.INT().getText());
     }
 
     @Override
@@ -737,7 +817,12 @@ public class queryExecute extends queryBaseListener{
     }
 
     @Override
-    public void enterParamSelect(queryParser.ParamSelectContext ctx) {
+    public void exitParamSelect(queryParser.ParamSelectContext ctx) {
+        
+    }
+    
+    @Override
+    public void enterParamSelect(queryParser.ParamSelectContext ctx) {        
         _langContext.get(_depth)._SELECT = true;
     }
 

@@ -68,16 +68,7 @@ public class GraphContext {
         
     public GraphContext() {
         graph = new TinkerGraph();        
-
-//        FramedGraphFactory factory2 = new FramedGraphFactory(
-//			    new TypedGraphModuleBuilder()
-//			    .withClass(ClassEntity.class)
-//                            .withClass(JarEntity.class)
-//			    .withClass(PackageEntity.class)			    
-//			    .build()
-//        );
         FramedGraphFactory factory = new FramedGraphFactory(new GremlinGroovyModule()); //Use the gremlin groovy module
-        
         framed = factory.create(graph);
     }
 
@@ -101,7 +92,7 @@ public class GraphContext {
                 + "\nInner : " + metadata.isInnerClass()
         );                
         
-            ClassEntity classEntity = getClass(metadata.getFullName());
+        ClassEntity classEntity = getClass(metadata.getFullName());
         _tmp = classEntity;
         classEntity.setName(metadata.getName());        
         classEntity.setDescription(metadata.getDescription());
