@@ -51,7 +51,7 @@ public class GraphContext {
     private final Graph graph;            // základní graf    
     private final FramedGraph<Graph> framed;     // rozšíøený graf    
     private JarEntity _jar;
-    private final boolean log = false;
+    private final boolean log = true;
     private ClassEntity _tmp = null;
 
     public boolean isError() {
@@ -72,7 +72,7 @@ public class GraphContext {
         framed = factory.create(graph);
     }
 
-    public void CreateClassMetadata(TypeDefinition metadata) {
+    public void CreateClassMetadata(TypeDefinition metadata) {        
         if(log)
         System.out.println(
                 "C"
@@ -448,15 +448,31 @@ public class GraphContext {
                 //m.getBody().getVariables().listIterator().next().getDeclaringType()
             for (Instruction ins :m.getBody().getInstructions()) {
                 if(log)
-                System.out.println(
+                System.out.println(                        
                         "\nString : " + ins.toString()
-                        + "\nLable : " + ins.hasLabel()
+                        + "\nLable : " + (ins.hasLabel() ? ins.getLabel().getIndex() : "false")
                         + "\nOffset : " + ins.hasOffset()
                         + "\nOperand : " + ins.hasOperand()
                         + "\nCode : " + ins.hashCode()
+                        + "\nGetOpCode : " + ins.getOpCode()                        
                 );
+                if(log)
+                for(int i = 0; i < ins.getOperandCount(); i++)
+                {
+                    System.out.println("Operand : " + ins.getOperand(i));
+                }
                 if(ins.toString().contains("INVOKE"))
-                    setCall(ins.toString(), ME);                    
+                {
+                    if(ins.toString().contains("STATIC")) //INVOKESPECIAL
+                    {
+                        setCall(ins.toString(), ME, true);
+                    }
+                    else if(!ins.toString().contains("SPECIAL"))
+                    {
+                        setCall(ins.toString(), ME, false);                    
+                    }
+                }
+                    
             }
     }
 
@@ -568,10 +584,9 @@ public class GraphContext {
         );
     }
 
-    private void setCall(String INS, MethodEntity ME) {
+    private void setCall(String INS, MethodEntity ME, boolean isStatic) {
         if(log)
-        System.out.println(
-                "\nfull : " +INS.replaceAll(".*INVOKE[A-Z]* ","")                        
+        System.out.println("\nfull : " +INS.replaceAll(".*INVOKE[A-Z]* ","")                        
                 + "\nClass : " + INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll("\\..*", "")
                  + "\nMethod : " + INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\.", "").replaceAll(":\\(.*", "")
                 + "\nParametrs : " + INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*:\\(", "").replaceAll("\\).*", "")

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app;
+package com.queryToAST.app.QueryLanguage;
 
 import com.queryToAST.app.Graph.GraphContext;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;

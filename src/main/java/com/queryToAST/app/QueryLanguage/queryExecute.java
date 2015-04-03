@@ -28,7 +28,14 @@ public class queryExecute extends queryBaseListener{
     private List<AnnParaEntity> _annotated;
     private int _index = -1;
     private List<MethodEntity> _method = null;
-    
+//    Map<Integer, String> map = new TreeMap<Integer, String>();
+//    map.put(2, "dva");
+//    map.put(3, "tri");
+//    map.put(1, "jedna");
+//
+//    for(Integer key : map.keySet()){
+//      System.out.println(map.get(key)); //jedna dva tri (serazene podle klice)
+//    }
     public GraphContext getContext() {
         return _graphContext;
     }
@@ -74,90 +81,89 @@ public class queryExecute extends queryBaseListener{
         List<ClassEntity> tmp = new ArrayList();
         queryParser.AnnotatedStatmentContext as = ctx.annotatedStatment();
         String name = as.annotatedName().NAME().getText();        
+        String strTMP = null;
+        String paramsTMP = null;
+        String[] paramTMP = null;
+        String method = null;
         
-        for(ClassEntity ce:_langContext.get(_depth).result)
-        {   
-            boolean isAE = true;
-            boolean isAnnotated = true;
-            AnnParaEntity ann = null;
-            AnnotatedEntity ar = null;
-            
-            if(ctx.MM() != null)
+        if(ctx.MM() != null)
+        {
+            strTMP = ctx.method().STRING(0).getText().replaceAll("[' ]", "");
+            paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");            
+
+            if(paramsTMP.compareTo("") != 0)
             {
-                if(ctx.getChildCount()!=1){
-                    for(int i =0; i < ctx.getChildCount();i++){
-                        //rozèíøení dotazy na casti methody !!!
-                    }
-                }
-                else
-                {
-                    String strTMP = ctx.method().STRING(0).getText().replaceAll("[' ]", "");
-                    String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
-                    String[] paramTMP = {};
-
-                    if(paramsTMP.compareTo("") != 0)
-                        paramTMP = paramsTMP.split(",");
-
-                    String method = strTMP.replaceFirst("\\(.*", "");
-
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                        for(MethodEntity me:re.getMethodRelated(method))
-                        {   
-                            if(me.getCountPara() != paramTMP.length)
-                            {
-                                continue;
-                            }
-                            boolean isTrueMethod=true;
-                            for(MethParaEntity mpr:me.getMethParaRelated())
-                            {
-                                if(mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0)
-                                {                                                                                    
-                                    isTrueMethod = false;
-                                }
-                            }
-                            if(isTrueMethod)
-                            {
-                                _method.add(me);
-                            }
-                        }
-                    }
-                }
-                if(ctx.index() != null) //m['method'][index]@annotated...
-                {
-                    
-                }
-                else    // m['method']@annotated...
-                {
-                    
-                }
+                paramTMP = paramsTMP.split(",");
             }
-            else{
+            method = strTMP.replaceFirst("\\(.*", "");
+        }
+        else
+        {
+            for(ClassEntity ce:_langContext.get(_depth).result)
+            {   
+                boolean isAE = true;
+                boolean isAnnotated = true;
+                AnnParaEntity ann = null;
+                AnnotatedEntity ar = null;
+
                 ar = ce.getAnnotatedRelated(name);
-            }
-            
-            if(ar != null)  //@NAME
-            {
-                for(int i = 0; i < as.annotatedParams().size(); i++)
+
+
+                if(ar != null)  //@NAME
                 {
-                    queryParser.AnnotatedParamsContext apc = as.annotatedParams().get(i);
-                    if(apc.NAME() != null)
+                    for(int i = 0; i < as.annotatedParams().size(); i++)
                     {
-                        if(apc.index() != null) //@NAME.NAME INDEX
-                        {   
-                                if(isAE)
-                                { 
-                                    ann = ar.getAnnParaRelated(apc.NAME().getText());                                   
-                                    if(ann != null)
-                                    {
-                                        ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
-                                        if(ann == null)
+                        queryParser.AnnotatedParamsContext apc = as.annotatedParams().get(i);
+                        if(apc.NAME() != null)
+                        {
+                            if(apc.index() != null) //@NAME.NAME INDEX
+                            {   
+                                    if(isAE)
+                                    { 
+                                        ann = ar.getAnnParaRelated(apc.NAME().getText());                                   
+                                        if(ann != null)
+                                        {
+                                            ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
+                                            if(ann == null)
+                                            {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }
+                                        else
                                         {
                                             isAnnotated = false;
                                             break;
                                         }
+                                        isAE = false;
                                     }
                                     else
+                                    {
+                                        ann = ann.getAnnParaRelated(apc.NAME().getText());
+                                        if(ann != null)
+                                        {
+                                            ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
+                                            if(ann == null)
+                                            {
+                                                isAnnotated = false;
+                                                break;
+                                            }                                        
+                                        }
+                                        else
+                                        {
+                                            isAnnotated = false;
+                                            break;
+                                        }
+
+                                    }
+                                    System.out.println("name index : " + ann.getName());
+                            }
+                            else    //@NAME.NAME
+                            {
+                                if(isAE)
+                                {
+                                    ann = ar.getAnnParaRelated(apc.NAME().getText());
+                                    if(ann == null)
                                     {
                                         isAnnotated = false;
                                         break;
@@ -167,72 +173,40 @@ public class queryExecute extends queryBaseListener{
                                 else
                                 {
                                     ann = ann.getAnnParaRelated(apc.NAME().getText());
-                                    if(ann != null)
-                                    {
-                                        ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
-                                        if(ann == null)
-                                        {
-                                            isAnnotated = false;
-                                            break;
-                                        }                                        
-                                    }
-                                    else
+                                    if(ann == null)
                                     {
                                         isAnnotated = false;
                                         break;
                                     }
-                                    
                                 }
-                                System.out.println("name index : " + ann.getName());
-                        }
-                        else    //@NAME.NAME
+                                System.out.println("name : " + ann.getName() + ann.getValue());
+                            }
+                        }                    
+                        else if(apc.annotatedName() != null)//@NAME.NAME.@NAME
                         {
-                            if(isAE)
+                            if(apc.annotatedName().NAME().getText().compareTo(ann.getName()) == 0)
                             {
-                                ann = ar.getAnnParaRelated(apc.NAME().getText());
-                                if(ann == null)
-                                {
-                                    isAnnotated = false;
-                                    break;
-                                }
-                                isAE = false;
+                                System.out.println("@name : " + ann.getName());
                             }
                             else
                             {
-                                ann = ann.getAnnParaRelated(apc.NAME().getText());
-                                if(ann == null)
-                                {
-                                    isAnnotated = false;
-                                    break;
-                                }
+                                isAnnotated = false;
+                                break;
                             }
-                            System.out.println("name : " + ann.getName() + ann.getValue());
-                        }
-                    }                    
-                    else if(apc.annotatedName() != null)//@NAME.NAME.@NAME
-                    {
-                        if(apc.annotatedName().NAME().getText().compareTo(ann.getName()) == 0)
-                        {
-                            System.out.println("@name : " + ann.getName());
-                        }
-                        else
-                        {
-                            isAnnotated = false;
-                            break;
                         }
                     }
                 }
-            }
-            else
-            {                
-               continue;
-            }
-            
-            
-            if(isAnnotated)
-            {
-                _annotated.add(ann);
-                tmp.add(ce);
+                else
+                {                
+                   continue;
+                }
+
+
+                if(isAnnotated)
+                {
+                    _annotated.add(ann);
+                    tmp.add(ce);
+                }
             }
         }
         _langContext.get(_depth).result = tmp;

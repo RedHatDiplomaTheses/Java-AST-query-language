@@ -1,5 +1,6 @@
 package com.queryToAST.app;
 
+import com.queryToAST.app.QueryLanguage.execute;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import java.util.List;
 import java.util.Scanner;

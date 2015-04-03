@@ -24,6 +24,9 @@ public interface MethodEntity extends BaseEntity{
     @GremlinGroovy("it.in('callRelated')")
     public Iterable<MethodEntity> getInCallRelated();
     
+    @GremlinGroovy("it.as('x').out('annotatedRelated').except('x').has('name',name)")
+    public AnnotatedEntity getAnnotatedRelated(@GremlinParam("name") String name);
+    
     @Property("countPara")
     public void setCountPara(int count);
     @Property("countPara")
