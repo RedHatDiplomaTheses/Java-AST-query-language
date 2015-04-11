@@ -60,7 +60,9 @@ public class execute {
         queryExecute execute = new queryExecute();
         execute.setContext(_graphContext);
         walker.walk(execute, tree); // walk parse tree
-                
+         
+        execute.printErr();
+        
         return execute.getResult();
     }
         

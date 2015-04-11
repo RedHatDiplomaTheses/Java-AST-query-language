@@ -51,7 +51,7 @@ public class GraphContext {
     private final Graph graph;            // základní graf    
     private final FramedGraph<Graph> framed;     // rozšíøený graf    
     private JarEntity _jar;
-    private final boolean log = true;
+    private final boolean log = false;
     private ClassEntity _tmp = null;
 
     public boolean isError() {
@@ -466,10 +466,22 @@ public class GraphContext {
                     if(ins.toString().contains("STATIC")) //INVOKESPECIAL
                     {
                         setCall(ins.toString(), ME, true);
-                    }
-                    else if(!ins.toString().contains("SPECIAL"))
+                    }                    
+                    else if(ins.toString().contains("INTERFACE"))
                     {
                         setCall(ins.toString(), ME, false);                    
+                    }
+                    else if(ins.toString().contains("VIRTUAL"))
+                    {
+                        setCall(ins.toString(), ME, false);                    
+                    }
+                    else if(ins.toString().contains("DYNAMIC"))
+                    {
+                        setCall(ins.toString(), ME, false);                    
+                    }
+                    else if(ins.toString().contains("SPECIAL"))
+                    {
+                        //setCall(ins.toString(), ME, false);                    
                     }
                 }
                     
@@ -593,14 +605,14 @@ public class GraphContext {
                 + "\nReturn : " + INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\)", "")
                 + "\nFQN : " + INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(":\\(.*", "")
                 );
-        String Full = INS.replaceAll(".*INVOKE[A-Z]* ","");
-        String Class = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll("\\..*", "");
-        String Method = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\.", "").replaceAll(":\\(.*", "");
-        String Param = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*:\\(", "").replaceAll("\\).*", "");
-        String Return =INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(".*\\)", "").replaceAll("/", ".");
-        String FQN = INS.replaceAll(".*INVOKE[A-Z]* ","").replaceAll(":\\(.*", "");
-        
-        List<String> result = convertType(Param);
+        String Full = INS.replaceAll(".*INVOKE[A-Z]+ ","");
+        String Class = INS.replaceAll(".*INVOKE[A-Z]+ ","").replaceAll("\\..*", "");
+        String Method = INS.replaceAll(".*INVOKE[A-Z]+ ","").replaceAll(".*\\.", "").replaceAll(":\\(.*", "");
+        String Param = INS.replaceAll(".*INVOKE[A-Z]+ ","").replaceAll(".*:\\(", "").replaceAll("\\).*", "");
+        String Return =INS.replaceAll(".*INVOKE[A-Z]+ ","").replaceAll(".*\\)", "").replaceAll("/", ".");
+        String FQN = INS.replaceAll(".*INVOKE[A-Z]+ ","").replaceAll(":\\(.*", "");
+                
+        List<String> result = convertType(Param);        
         List<String> ret = convertType(Return);               
         
         String Brief = (ret.isEmpty() ? "void" : ret.get(ret.size()-1))
@@ -659,7 +671,7 @@ public class GraphContext {
                     break;
                 case 'L':
                     String re="";
-                    while(s[++i] !=';'){
+                    while(s[++i] != ';'){    //Error
                         re += s[i];
                     }
                     result.add(re);

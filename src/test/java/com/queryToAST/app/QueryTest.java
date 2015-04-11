@@ -40,7 +40,7 @@ public class QueryTest extends TestCase{
     {
         return new TestSuite( AppTest.class );
     }
-    
+        
     public void testQuery() throws IOException{
         // create a CharStream that reads from standard input
         ANTLRInputStream input = new ANTLRInputStream("select * from *");

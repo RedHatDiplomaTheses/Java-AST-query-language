@@ -66,6 +66,18 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterAlias(queryParser.AliasContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAlias(queryParser.AliasContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterPackages(queryParser.PackagesContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -85,6 +97,18 @@ public class queryBaseListener implements queryListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPackageName(queryParser.PackageNameContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterAs(queryParser.AsContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitAs(queryParser.AsContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -126,13 +150,13 @@ public class queryBaseListener implements queryListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterAssignment(queryParser.AssignmentContext ctx) { }
+	@Override public void enterRightStatment(queryParser.RightStatmentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitAssignment(queryParser.AssignmentContext ctx) { }
+	@Override public void exitRightStatment(queryParser.RightStatmentContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

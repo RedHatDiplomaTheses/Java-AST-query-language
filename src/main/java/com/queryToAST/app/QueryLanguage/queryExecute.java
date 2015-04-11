@@ -11,8 +11,11 @@ import com.queryToAST.app.Graph.Vertex.AnnotatedEntity;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import com.queryToAST.app.Graph.Vertex.MethParaEntity;
 import com.queryToAST.app.Graph.Vertex.MethodEntity;
+import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -22,853 +25,1657 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  * @author Niriel
  */
 public class queryExecute extends queryBaseListener{
+    
+    // <editor-fold defaultstate="collapsed" desc=" Property ">
     private GraphContext _graphContext = null;
     private List<LangContext> _langContext = new ArrayList();
     private int _depth = 0;
-    private List<AnnParaEntity> _annotated;
-    private int _index = -1;
+    private List<AnnParaEntity> _annotatedRight;
+    private List<AnnParaEntity> _annotatedLeft;
+    private int _index;
     private List<MethodEntity> _method = null;
-//    Map<Integer, String> map = new TreeMap<Integer, String>();
-//    map.put(2, "dva");
-//    map.put(3, "tri");
-//    map.put(1, "jedna");
-//
-//    for(Integer key : map.keySet()){
-//      System.out.println(map.get(key)); //jedna dva tri (serazene podle klice)
-//    }
+    private List<ClassEntity> _result = new ArrayList();
+    private List<ErrorMessage> _errMsg = new ArrayList();
+    private boolean _error = false;
+    private String _as = null;
+    private String _alias = null;
+    private boolean _isRight = false;    
+// </editor-fold>
+        
+    // <editor-fold defaultstate="collapsed" desc=" Get-Set ">
+    public void printErr() {
+        for (ErrorMessage em : _errMsg) {
+            System.out.println(em);
+        }
+    }
+    
     public GraphContext getContext() {
         return _graphContext;
     }
-
+    
     public void setContext(GraphContext context) {
         this._graphContext = context;
     }    
     
-    public List<ClassEntity> getResult(){
-        return _langContext.get(_depth).result;
-    }
-    
-    @Override
-    public void visitErrorNode(ErrorNode node) {
-        super.visitErrorNode(node); //To change body of generated methods, choose Tools | Templates.
+    public List<ClassEntity> getResult() {
+        return _result;
     }
 
+// </editor-fold>
+        
+    // <editor-fold defaultstate="collapsed" desc=" Every terminal ">
+
+    @Override
+    public void visitErrorNode(ErrorNode node) {
+        _error =true;
+        _errMsg.add(new ErrorMessage("Chyba v lexikální alalýze nebo v gramatice.", _error));
+        super.visitErrorNode(node); //To change body of generated methods, choose Tools | Templates.
+    }
+    
     @Override
     public void visitTerminal(TerminalNode node) {
         super.visitTerminal(node); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void exitEveryRule(ParserRuleContext ctx) {
         super.exitEveryRule(ctx); //To change body of generated methods, choose Tools | Templates.
     }
-
+    
     @Override
     public void enterEveryRule(ParserRuleContext ctx) {
         super.enterEveryRule(ctx); //To change body of generated methods, choose Tools | Templates.
     }
 
+// </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" InnerSelect ">
     @Override
     public void exitInnerSelect(queryParser.InnerSelectContext ctx) {        
         _depth--;
     }
     
     @Override
+    public void enterInnerSelect(queryParser.InnerSelectContext ctx) {
+        _depth++;
+    }
+
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Annotated ">
+    @Override
     public void exitAnnotated(queryParser.AnnotatedContext ctx) {
-        if(_langContext.get(_depth).error) return;        
-        _annotated = new ArrayList();        
-        List<ClassEntity> tmp = new ArrayList();
+        if (_error) {
+            return;
+        }
+                       
         queryParser.AnnotatedStatmentContext as = ctx.annotatedStatment();
+        List<ClassEntity> tmp = new ArrayList();
+        List<ClassEntity> alTmp = null;
+        List<AnnParaEntity> anpTmp= new ArrayList();
+        
+        // <editor-fold defaultstate="collapsed" desc=" IF alias ">            
+        if (_alias != null) {
+            boolean isTrue = false;
+            for (int i = _depth; i >= 0; i--) {
+                if (_langContext.get(i).mapAS.containsKey(_alias)) {
+                    alTmp = _langContext.get(i).mapAS.get(_alias);
+                    isTrue = true;
+                    break;
+                }
+            }
+            if (!isTrue) {
+                _error = true;
+                _errMsg.add(new ErrorMessage("Neexistující alias: " + _alias, isTrue));
+                return;
+            }
+        } else {
+            alTmp = _langContext.get(_index).result;
+        }
+        // </editor-fold>                                                
+        
         String name = as.annotatedName().NAME().getText();        
         String strTMP = null;
         String paramsTMP = null;
         String[] paramTMP = null;
         String method = null;
         
-        if(ctx.MM() != null)
-        {
+        if (ctx.MM() != null) {
             strTMP = ctx.method().STRING(0).getText().replaceAll("[' ]", "");
             paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");            
-
-            if(paramsTMP.compareTo("") != 0)
-            {
+            
+            if (paramsTMP.compareTo("") != 0) {
                 paramTMP = paramsTMP.split(",");
             }
             method = strTMP.replaceFirst("\\(.*", "");
-        }
-        else
-        {
-            for(ClassEntity ce:_langContext.get(_depth).result)
-            {   
+            
+            //Dodelat!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        } else {
+            for (ClassEntity ce : alTmp) {                
                 boolean isAE = true;
                 boolean isAnnotated = true;
                 AnnParaEntity ann = null;
                 AnnotatedEntity ar = null;
-
+                
                 ar = ce.getAnnotatedRelated(name);
-
-
-                if(ar != null)  //@NAME
+                
+                if (ar != null) //@NAME
                 {
-                    for(int i = 0; i < as.annotatedParams().size(); i++)
-                    {
+                    for (int i = 0; i < as.annotatedParams().size(); i++) {
                         queryParser.AnnotatedParamsContext apc = as.annotatedParams().get(i);
-                        if(apc.NAME() != null)
-                        {
-                            if(apc.index() != null) //@NAME.NAME INDEX
-                            {   
-                                    if(isAE)
-                                    { 
-                                        ann = ar.getAnnParaRelated(apc.NAME().getText());                                   
-                                        if(ann != null)
-                                        {
-                                            ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
-                                            if(ann == null)
-                                            {
-                                                isAnnotated = false;
-                                                break;
-                                            }
-                                        }
-                                        else
-                                        {
+                        if (apc.NAME() != null) {
+                            if (apc.index() != null) //@NAME.NAME INDEX
+                            {                                
+                                if (isAE) {                                    
+                                    ann = ar.getAnnParaRelated(apc.NAME().getText());                                    
+                                    if (ann != null) {
+                                        ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
+                                        if (ann == null) {
                                             isAnnotated = false;
                                             break;
                                         }
-                                        isAE = false;
-                                    }
-                                    else
-                                    {
-                                        ann = ann.getAnnParaRelated(apc.NAME().getText());
-                                        if(ann != null)
-                                        {
-                                            ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
-                                            if(ann == null)
-                                            {
-                                                isAnnotated = false;
-                                                break;
-                                            }                                        
-                                        }
-                                        else
-                                        {
-                                            isAnnotated = false;
-                                            break;
-                                        }
-
-                                    }
-                                    System.out.println("name index : " + ann.getName());
-                            }
-                            else    //@NAME.NAME
-                            {
-                                if(isAE)
-                                {
-                                    ann = ar.getAnnParaRelated(apc.NAME().getText());
-                                    if(ann == null)
-                                    {
+                                    } else {
                                         isAnnotated = false;
                                         break;
                                     }
                                     isAE = false;
-                                }
-                                else
-                                {
+                                } else {
                                     ann = ann.getAnnParaRelated(apc.NAME().getText());
-                                    if(ann == null)
-                                    {
+                                    if (ann != null) {
+                                        ann = ann.getIndexRelated(Integer.parseInt(apc.index().INT().getText()));
+                                        if (ann == null) {
+                                            isAnnotated = false;
+                                            break;
+                                        }                                        
+                                    } else {
                                         isAnnotated = false;
                                         break;
                                     }
-                                }
-                                System.out.println("name : " + ann.getName() + ann.getValue());
+                                    
+                                }                                
+                            } else //@NAME.NAME
+                            {
+                                if (isAE) {
+                                    ann = ar.getAnnParaRelated(apc.NAME().getText());
+                                    if (ann == null) {
+                                        isAnnotated = false;
+                                        break;
+                                    }
+                                    isAE = false;
+                                } else {
+                                    ann = ann.getAnnParaRelated(apc.NAME().getText());
+                                    if (ann == null) {
+                                        isAnnotated = false;
+                                        break;
+                                    }
+                                }                                
                             }
-                        }                    
-                        else if(apc.annotatedName() != null)//@NAME.NAME.@NAME
+                        } else if (apc.annotatedName() != null)//@NAME.NAME.@NAME
                         {
-                            if(apc.annotatedName().NAME().getText().compareTo(ann.getName()) == 0)
-                            {
-                                System.out.println("@name : " + ann.getName());
-                            }
-                            else
-                            {
+                            if (apc.annotatedName().NAME().getText().compareTo(ann.getName()) == 0) {                                
+                            } else {
                                 isAnnotated = false;
                                 break;
                             }
                         }
                     }
+                } else {                    
+                    continue;
                 }
-                else
-                {                
-                   continue;
-                }
-
-
-                if(isAnnotated)
-                {
-                    _annotated.add(ann);
+                
+                if (isAnnotated) {
+                    anpTmp.add(ann);
                     tmp.add(ce);
                 }
             }
         }
-        _langContext.get(_depth).result = tmp;
-    }
-    
-    @Override
-    public void exitAssignment(queryParser.AssignmentContext ctx) {
-        if(_langContext.get(_depth).error) return;
         
-        if(ctx.NAME() != null)  // $1:NAME
-        {
-            if(ctx.NAME().getText().compareToIgnoreCase("name") == 0) // $1:name
-            {
-                for(ClassEntity ce:_langContext.get(_depth).result)
-                {
-                    _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), ce.getName());
-                }
-            }
-            else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0) // $1:fqn
-            {
-                for(ClassEntity ce:_langContext.get(_depth).result)
-                {
-                    _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), ce.getFQN());
-                }
-            }            
-        }
-        else if(ctx.ID_SLASH() != null) // $1:\1
-        {
-            for(String str:_langContext.get(_depth).id.get(ctx.NAME().getText()))
-            {
-                _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), str);
-            }
-        }
-        else if(ctx.annotated() != null)
-        {
-            for(AnnParaEntity tav:_annotated)
-            {
-                if(tav.getValue() != null)
-                {
-                    _langContext.get(_depth).id.add(ctx.ID_DOLLAR().getText(), tav.getValue());
-                }
-                else
-                {
-                    System.out.println("Error assigment annotace is null!!");
-                }
-            }
-        }
-    }
-    
-    @Override
-    public void exitEqual(queryParser.EqualContext ctx) {
-        if(_langContext.get(_depth).error) return;        
-        List<ClassEntity> tmp = new ArrayList();
-        if(ctx.NAME() != null)
-        {
-            if(ctx.STRING() != null) //name = STRING
-            {
-                for(ClassEntity ce :_langContext.get(_depth).result)
-                {
-                    if(ctx.NAME().getText().compareToIgnoreCase("name") == 0) // name = STRING
-                    {
-                        if(ce.getName().compareTo(ctx.STRING().getText().replaceAll("'", "")) == 0)
-                        {
-                            tmp.add(ce);                            
-                        }
-                    }
-                    else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0) // fqn = STRING
-                    {
-                        if(ce.getFQN().compareTo(ctx.STRING().getText().replaceAll("'", "")) == 0)
-                        {
-                            tmp.add(ce);
-                        }
-                    }
-                }
-            }
-            else if(ctx.ID_SLASH() != null) //NAME = \1
-            {                
-                if(ctx.NAME().getText().compareToIgnoreCase("name") == 0) //name = \1
-                {
-                    for(ClassEntity ce : _langContext.get(_depth).result)
-                    {
-                        for(String str : _langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
-                        {                        
-                            if(str.compareTo(ce.getName()) == 0)
-                            {
-                                tmp.add(ce);
-                                break;
-                            }
-                        }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0) //fqn = \1
-                {
-                    for(ClassEntity ce : _langContext.get(_depth).result)
-                    {
-                        for(String str : _langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
-                        {                        
-                            if(str.compareTo(ce.getFQN())==0)
-                            {
-                                tmp.add(ce);
-                                break;
-                            }
-                        }
-                    }
-                }                
-            }
-        }
-        else if(ctx.annotated() != null)
-        {
-            if(ctx.STRING() != null)    //@annotation.value = STRING
-            {
-                for(int i =0; i < _annotated.size() ; i++)
-                {
-                    if(_annotated.get(i).getValue() != null && ctx.STRING().getText().replaceAll("'","").compareTo(_annotated.get(i).getValue()) == 0)
-                    {                        
-                        tmp.add(_langContext.get(_depth).result.get(i));
-                    }
-                }
-            }
-            else if(ctx.ID_SLASH() != null) // @annotation.value = \1
-            {
-                for(int i =0; i < _annotated.size() ; i++)
-                {
-                    if(_annotated.get(i).getValue()!= null)
-                    {
-                        for(String str : _langContext.get(_depth-1).id.get(ctx.ID_SLASH().getText()))
-                        {
-                            if(str.compareTo(_annotated.get(i).getValue()) == 0)
-                            {
-                                tmp.add(_langContext.get(_depth).result.get(i));
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-            else    // @annotation
-            {                
-                return;
-            }
-        }
-        _langContext.get(_depth).result = tmp;
-    }
-
-    @Override
-    public void exitCond(queryParser.CondContext ctx) {
-        if(_langContext.get(_depth).error) return;
-        if(ctx.NAME() == null) return;
         
-        List<ClassEntity> tmp = new ArrayList();
-        if(ctx.getChildCount()==1)
-        {
-            if(ctx.NAME() != null)
-            {
-                if(ctx.NAME().getText().compareToIgnoreCase("class") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.getType().compareToIgnoreCase("class") == 0)
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("interface") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.getType().compareToIgnoreCase("interface") == 0)
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("annotation") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.getType().compareToIgnoreCase("annotation") == 0)
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("enum") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.getType().compareToIgnoreCase("enum") == 0)
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("public") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.isPublic())
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("protected") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.isProtected())
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("private") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.isPrivate())
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("final") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.isFinal())
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("inner") == 0)
-                {
-                    for(ClassEntity re:_langContext.get(_depth).result)
-                    {
-                      if(re.isInner())
-                      {
-                          tmp.add(re);
-                      }
-                    }
-                }
-            }
-            else if (ctx.innerSelect() != null)
-            {
-                if(_langContext.get(_depth + 1).result == null)
-                {
-                    tmp = null;
-                }
-            }       
-        }
-        if(ctx.getChildCount() == 3) //inner (innetSelect) OPERATORS NAME
-        {
-            if(ctx.NAME() != null)
-            {
-                if(ctx.NAME().getText().compareToIgnoreCase("import") == 0)
-                {
-                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            boolean isImport = true;
-                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
-                            {
-                                if(ce.getImportRelated(ce2.getFQN()) == null)
-                                {
-                                    isImport = false;
-                                }
-                            }
-                            if(isImport)
-                            {
-                                tmp.add(ce);
-                            }
-                        }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("extend") == 0)
-                {
-                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            boolean isTrue = true;
-                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
-                            {
-                                if(ce.getExtendsRelated(ce2.getFQN()) == null)
-                                {
-                                    isTrue = false;
-                                }
-                            }
-                            if(isTrue)
-                            {
-                                tmp.add(ce);
-                            }
-                        }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("implements") == 0)
-                {
-                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            boolean isTrue = true;
-                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
-                            {
-                                if(ce.getImplementsRelated(ce2.getFQN()) == null)
-                                {
-                                    isTrue = false;
-                                }
-                            }
-                            if(isTrue)
-                            {
-                                tmp.add(ce);
-                            }
-                        }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("name") == 0)
-                {
-                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            boolean isTrue = true;
-                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
-                            {
-                                if(ce.getName().compareTo(ce2.getName()) != 0)
-                                {
-                                    isTrue = false;
-                                }
-                            }
-                            if(isTrue)
-                            {
-                                tmp.add(ce);
-                            }
-                        }
-                    }
-                }
-                else if(ctx.NAME().getText().compareToIgnoreCase("fqn") == 0)
-                {
-                    if(ctx.OPERATORS().getText().compareTo("in") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            boolean isTrue = true;
-                            for(ClassEntity ce2:_langContext.get(_depth + 1).result)
-                            {
-                                if(ce.getFQN().compareTo(ce2.getFQN()) != 0)
-                                {
-                                    isTrue = false;
-                                }
-                            }
-                            if(isTrue)
-                            {
-                                tmp.add(ce);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        _langContext.get(_depth).result = tmp;
-    }
-
-    @Override
-    public void exitPackageName(queryParser.PackageNameContext ctx) {
-        if(_langContext.get(_depth).error) return;
-        if(ctx.getChildCount()==2)
-        {
-            _langContext.get(_depth).result.addAll(_graphContext.getClassInPackage(ctx.STRING().getText()));
+        if(!_isRight) {
+            _annotatedLeft = anpTmp;
+            alTmp.clear();
+            alTmp.addAll(tmp);
+            
         }
         else
         {
-            _langContext.get(_depth).result.addAll(_graphContext.getClassInPackageRecursion(ctx.STRING().getText()));
-        }        
+          _annotatedRight = anpTmp;  
+        }
+       
     }
 
-    @Override
-    public void exitPackages(queryParser.PackagesContext ctx) {
-        if(_langContext.get(_depth).error) return;
-        if(ctx.getChildCount()==1 && ctx.STAR() != null)
-        {
-            List<ClassEntity> tmp = _graphContext.getClassInPackage(ctx.STAR().getText());
-            if(!_graphContext.isError())
-            {
-                if(tmp != null)
-                {
-                    _langContext.get(_depth).result.addAll(tmp);
-                }
-            }
-            else
-            {
-                _langContext.get(_depth).error = true;
-            }
-        }
-    }
-
-    @Override
-    public void exitParamName(queryParser.ParamNameContext ctx) {
-        _langContext.get(_depth).selectList.add(ctx);
-    }
-
-    @Override
-    public void exitSelectStatment(queryParser.SelectStatmentContext ctx) {
-        if(_langContext.get(_depth).error) return;
-        if(!_langContext.get(_depth)._FROM)
-        {
-             _langContext.get(_depth).result = _graphContext.getClassInPackage("*");
-            _langContext.get(_depth)._FROM = true;
-        }
-        List<ClassEntity> tmp = new ArrayList();
-        
-        for(queryParser.ParamNameContext select:_langContext.get(_depth).selectList)
-        {
-            if(select.getChildCount() == 1)
-            {
-                if(select.NAME() != null)
-                {                    
-                    if(select.NAME().getText().compareToIgnoreCase("extend") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            Iterable<ClassEntity> extendsRelated = ce.getExtendsRelated();
-                            if(extendsRelated !=null)
-                            {
-                                tmp.addAll(Lists.newArrayList(extendsRelated));
-                            }
-                        }
-                    }
-                    else if(select.NAME().getText().compareToIgnoreCase("import") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            Iterable<ClassEntity> Related = ce.getImportRelated();
-                            if(Related !=null)
-                            {
-                                tmp.addAll(Lists.newArrayList(Related));
-                            }
-                        }
-                    }
-                    else if(select.NAME().getText().compareToIgnoreCase("implements") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            Iterable<ClassEntity> Related = ce.getImportRelated();
-                            if(Related !=null)
-                            {
-                                tmp.addAll(Lists.newArrayList(Related));
-                            }
-                        }
-                    }
-                        
-                }
-                else if(select.STAR() != null)
-                {
-                    tmp.addAll(_langContext.get(_depth).result);
-                }                
-            }
-            else if(select.getChildCount() ==  2)
-            {
-                if(select.EXCLAMANTION() != null && select.NAME() != null)
-                {
-                    if(select.NAME().getText().compareToIgnoreCase("extend") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            Iterable<ClassEntity> Related = ce.getInExtendsRelated();
-                            if(Related !=null)
-                            {
-                                tmp.addAll(Lists.newArrayList(Related));
-                            }
-                        }
-                    }
-                    else if(select.NAME().getText().compareToIgnoreCase("import") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            Iterable<ClassEntity> Related = ce.getInImportRelated();
-                            if(Related !=null)
-                            {
-                                tmp.addAll(Lists.newArrayList(Related));
-                            }
-                        }
-                    }
-                    else if(select.NAME().getText().compareToIgnoreCase("implements") == 0)
-                    {
-                        for(ClassEntity ce:_langContext.get(_depth).result)
-                        {
-                            Iterable<ClassEntity> Related = ce.getInImplementsRelated();
-                            if(Related !=null)
-                            {
-                                tmp.addAll(Lists.newArrayList(Related));
-                            }
-                        }
-                    }                    
-                }
-            }
-            else if(select.getChildCount() == 4)
-            {
-                if(select.NAME() != null && select.NAME().getText().compareToIgnoreCase("call") == 0)
-                {                   
-                    if(select.method() != null)
-                    {   
-                        if(select.method().getChildCount()!=1){
-                            for(int i =0; i < select.method().getChildCount();i++){
-                                //rozèíøení dotazy na casti methody !!!
-                            }
-                        }
-                        else
-                        {
-                            String strTMP = select.method().STRING(0).getText().replaceAll("[' ]", "");
-                            String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
-                            String[] paramTMP = {};
-                            
-                            if(paramsTMP.compareTo("") != 0)
-                                paramTMP = paramsTMP.split(",");
-                            
-                            String name = strTMP.replaceFirst("\\(.*", "");
-                            
-                            for(ClassEntity re:_langContext.get(_depth).result)
-                            {
-                                for(MethodEntity me:re.getMethodRelated(name))
-                                {   
-                                    if(me.getCountPara() != paramTMP.length)
-                                    {
-                                        continue;
-                                    }
-                                    boolean isTrueMethod=true;
-                                    for(MethParaEntity mpr:me.getMethParaRelated())
-                                    {
-                                        if(mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0)
-                                        {                                                                                    
-                                            isTrueMethod = false;
-                                        }
-                                    }
-                                    if(isTrueMethod)
-                                    {
-                                        for(MethodEntity mic:me.getInCallRelated())
-                                        {
-                                            tmp.add(mic.getInClassRelated());                                            
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }          
-        }
-        if(!_langContext.get(_depth).selectList.isEmpty())
-        {
-            _langContext.get(_depth).result = tmp;
-        }
-    }
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" as, INDEX and alias ">
 
     @Override
     public void exitIndex(queryParser.IndexContext ctx) {
         _index = Integer.parseInt(ctx.INT().getText());
     }
-
+    
     @Override
-    public void enterInnerSelect(queryParser.InnerSelectContext ctx) {
-        _depth++;
+    public void exitAs(queryParser.AsContext ctx) {
+        if (_error) {
+            return;
+        }
+        
+        if (ctx.NAME(0).getText().compareToIgnoreCase("as") == 0) {
+            _as = ctx.NAME(1).getText();
+        } else {
+            _errMsg.add(new ErrorMessage("Je oèekáván token AS pøišlo: " + ctx.NAME(0).getText(), true));
+            _error = true;
+        }
     }
 
     @Override
-    public void enterConditions(queryParser.ConditionsContext ctx) {
-        _langContext.get(_depth)._WHERE=true;
-        if(!_langContext.get(_depth)._FROM)
+    public void exitAlias(queryParser.AliasContext ctx) {
+        _alias = ctx.NAME().getText();
+    }
+
+// </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" RightStatment ">
+    @Override
+    public void enterRightStatment(queryParser.RightStatmentContext ctx) {
+        _alias = null;
+        _isRight = true;
+    }
+
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Equal ">
+    @Override
+    public void exitEqual(queryParser.EqualContext ctx) {
+        if (_error) return;
+        
+        if (ctx.OPERATORS() != null && ctx.OPERATORS().getText().compareToIgnoreCase("in") == 0)
         {
+            _error=true;
+            _errMsg.add(new ErrorMessage("Neplatný operátor: " + ctx.OPERATORS().getText(), _error));
+            return;
+        }
+        
+        List<ClassEntity> tmp = new ArrayList();
+        List<ClassEntity> alTmp = null;
+                             
+        // <editor-fold defaultstate="collapsed" desc=" IF alias ">
+            alTmp = null;
+            if (ctx.alias() != null) {
+                boolean isTrue = false;
+                for (int i = _depth; i >= 0; i--) {
+                    if (_langContext.get(i).mapAS.containsKey(ctx.alias().NAME().getText())) {
+                        alTmp = _langContext.get(i).mapAS.get(ctx.alias().NAME().getText());
+                        isTrue = true;
+                        break;
+                    }
+                }
+                if (!isTrue) {
+                    _error = true;
+                    _errMsg.add(new ErrorMessage("Neexistující alias: " + ctx.alias().NAME().getText(), isTrue));
+                    return;
+                }
+            } else {
+                alTmp = _langContext.get(_index).result;
+            }
+
+            // </editor-fold>                        
+        if(ctx.NAME() != null)  //alias? NAME OPERATORS rightStatment
+        {   
+            if (ctx.rightStatment().STRING() != null) // (as.)? NAME = 'String' (M:1)
+            {
+                // <editor-fold defaultstate="collapsed" desc=" as? name = 'String' ">
+                String str = ctx.rightStatment().STRING().getText().replaceAll("'", "");                
+                switch (ctx.NAME().getText().toLowerCase()) {
+                    case "name":
+                        for (ClassEntity ce : alTmp) {                            
+                            if (ce.getName().compareTo(str) == 0) {
+                                if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                    tmp.add(ce);
+                                }
+                            } else {
+                                if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                    tmp.add(ce);
+                                }
+                            }
+                            
+                            if (ce.getName().contains(str)) {
+                                if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                    tmp.add(ce);
+                                }
+                            }                            
+                        }
+                        break;
+                    case "fqn":
+                        for (ClassEntity ce : alTmp) {                            
+                            if (ce.getFQN().compareTo(str) == 0) {
+                                if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                    tmp.add(ce);
+                                }
+                            } else {
+                                if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                    tmp.add(ce);
+                                }
+                            }
+                            
+                            if (ce.getFQN().contains(str)) {
+                                if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                    tmp.add(ce);
+                                }
+                            }                            
+                        }
+                        break;
+                    default:
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.NAME().getText(), _error));
+                        return;                    
+                }
+
+// </editor-fold>
+                
+            } else if (ctx.rightStatment().NAME() != null) // (as.)? NAME = (AS.)? NAME (M:N)
+            {
+                // <editor-fold defaultstate="collapsed" desc=" as? NAME = as? NAME ">
+                List<ClassEntity> ceTmp = null;
+                if (ctx.alias() != null) {
+                    boolean isTrue = false;
+                    for (int i = _depth; i >= 0; i--) {
+                        if (_langContext.get(i).mapAS.containsKey(ctx.rightStatment().alias().NAME().getText())) {
+                            ceTmp = _langContext.get(i).mapAS.get(ctx.rightStatment().alias().NAME().getText());
+                            isTrue = true;
+                            break;
+                        }
+                    }
+                    if (!isTrue) {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Neexistující alias: " + ctx.rightStatment().alias().NAME().getText(), isTrue));
+                        return;
+                    }
+                } else {
+                    ceTmp = _langContext.get(_index).result;
+                }
+                
+                String cmpNAME =ctx.rightStatment().NAME().getText().replaceAll("'", "");
+                switch (ctx.NAME().getText().toLowerCase()) {
+                    case "name":
+                        for (ClassEntity ce : alTmp) {                            
+                            for (ClassEntity sec : ceTmp) {
+                                String cmpValue;
+                                switch (cmpNAME.toLowerCase()){
+                                    case "name":
+                                        cmpValue =sec.getName();
+                                        break;
+                                    case "fqn":
+                                        cmpValue =sec.getFQN();
+                                        break;
+                                    default:
+                                        _error = true;
+                                        _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.NAME().getText(), _error));
+                                        return;
+                                }
+                                if (ce.getName().compareTo(cmpValue) == 0) {
+                                    if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                } else {
+                                    if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                                
+                                if (ce.getName().contains(cmpValue)) {
+                                    if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case "fqn":
+                        for (ClassEntity ce : alTmp) {                            
+                            for (ClassEntity sec : ceTmp) {
+                                String cmpValue;
+                                switch (cmpNAME.toLowerCase()){
+                                    case "name":
+                                        cmpValue =sec.getName();
+                                        break;
+                                    case "fqn":
+                                        cmpValue =sec.getFQN();
+                                        break;
+                                    default:
+                                        _error = true;
+                                        _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.NAME().getText(), _error));
+                                        return;
+                                }
+                                if (ce.getFQN().compareTo(cmpValue) == 0) {
+                                    if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                } else {
+                                    if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                                
+                                if (ce.getFQN().contains(cmpValue)) {
+                                    if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.NAME().getText(), _error));
+                        return;                    
+                }
+
+            // </editor-fold>
+                
+            } else // NAME = @Annotated (M:N)
+            {
+                // <editor-fold defaultstate="collapsed" desc=" as? NAME = as? Annotated ">                
+                switch (ctx.NAME().getText().toLowerCase()) {
+                    case "name":
+                        for (ClassEntity ce : alTmp) {                            
+                            for ( AnnParaEntity sec : _annotatedRight) {
+                                if (ce.getName().compareTo(sec.getValue()) == 0) {
+                                    if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                } else {
+                                    if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                                
+                                if (ce.getName().contains(sec.getValue())) {
+                                    if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case "fqn":
+                        for (ClassEntity ce : alTmp) {                            
+                            for ( AnnParaEntity sec : _annotatedRight) {                                
+                                if (ce.getFQN().compareTo(sec.getValue()) == 0) {
+                                    if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                } else {
+                                    if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                                
+                                if (ce.getFQN().contains(sec.getValue())) {
+                                    if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.NAME().getText(), _error));
+                        return;                    
+                }
+
+            // </editor-fold>
+                
+            }                        
+        }
+        else if(ctx.OPERATORS() != null) //alias? annotated OPERATORS rightStatment
+        {            
+            if(ctx.rightStatment().STRING() != null)
+            {             
+                // <editor-fold defaultstate="collapsed" desc=" @Annotated = STRING ">
+                String cmp = ctx.rightStatment().STRING().getText().replaceAll("'", "");
+                for (int i = 0; i < _annotatedLeft.size(); i++) {
+                    ClassEntity ce = alTmp.get(i);
+                    AnnParaEntity left = _annotatedLeft.get(i);
+                    if (left.getValue() == null) {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
+                        return;                        
+                    }                    
+                    if (left.getValue().compareTo(cmp) == 0) {
+                        if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                            tmp.add(ce);
+                        }
+                    } else {
+                        if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                            tmp.add(ce);
+                        }
+                    }
+
+                    if (left.getValue().contains(cmp)) {
+                        if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                            tmp.add(ce);
+                        }
+                    }                    
+                }
+                // </editor-fold>
+            }
+            else if(ctx.rightStatment().NAME() != null)
+            {                
+                // <editor-fold defaultstate="collapsed" desc=" @Annotated = NAME ">
+                List<ClassEntity> ceTmp = null;
+                if (ctx.alias() != null) {
+                    boolean isTrue = false;
+                    for (int i = _depth; i >= 0; i--) {
+                        if (_langContext.get(i).mapAS.containsKey(ctx.rightStatment().alias().NAME().getText())) {
+                            ceTmp = _langContext.get(i).mapAS.get(ctx.rightStatment().alias().NAME().getText());
+                            isTrue = true;
+                            break;
+                        }
+                    }
+                    if (!isTrue) {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Neexistující alias: " + ctx.rightStatment().alias().NAME().getText(), isTrue));
+                        return;
+                    }
+                } else {
+                    ceTmp = _langContext.get(_index).result;
+                }
+                String cmpNAME =ctx.rightStatment().NAME().getText().replaceAll("'", "");
+                for (int i = 0; i < _annotatedLeft.size(); i++) {
+                    ClassEntity ce = alTmp.get(i);
+                    AnnParaEntity left = _annotatedLeft.get(i);                    
+                    if (left.getValue() == null) {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
+                        return;                        
+                    }
+                    for (ClassEntity sec : ceTmp) {
+                        String cmpValue;
+                        switch (cmpNAME.toLowerCase()){
+                            case "name":
+                                cmpValue =sec.getName();
+                                break;
+                            case "fqn":
+                                cmpValue =sec.getFQN();
+                                break;
+                            default:
+                                _error = true;
+                                _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.NAME().getText(), _error));
+                                return;
+                        }
+                        if (left.getValue().compareTo(cmpValue) == 0) {
+                            if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                tmp.add(ce);
+                            }
+                        } else {
+                            if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                tmp.add(ce);
+                            }
+                        }
+                        
+                        if (left.getValue().contains(cmpValue)) {
+                            if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
+
+// </editor-fold>
+            }
+            else 
+            {                          
+                // <editor-fold defaultstate="collapsed" desc=" @Annotated = @Annotated ">
+                for (int i = 0; i < _annotatedLeft.size(); i++) {
+                    ClassEntity ce = alTmp.get(i);
+                    AnnParaEntity left = _annotatedLeft.get(i);
+                    if (left.getValue() == null) {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
+                        return;                        
+                    }
+                    for (AnnParaEntity sec : _annotatedRight) {
+                        if (left.getValue().compareTo(sec.getValue()) == 0) {
+                            if (ctx.OPERATORS().getText().compareTo("=") == 0) {
+                                tmp.add(ce);
+                            }
+                        } else {
+                            if (ctx.OPERATORS().getText().compareTo("!=") == 0) {
+                                tmp.add(ce);
+                            }
+                        }
+                        
+                        if (left.getValue().contains(sec.getValue())) {
+                            if (ctx.OPERATORS().getText().compareTo("~") == 0) {
+                                tmp.add(ce);
+                            }
+                        }
+                    }
+                }
+
+                // </editor-fold>
+            }             
+        }
+        else    //alias? annotated
+        {
+            return; //vyøízeno v exitAnnotated;
+        }
+         alTmp.clear();
+         alTmp.addAll(tmp);        
+    }
+
+    @Override
+    public void enterEqual(queryParser.EqualContext ctx) {
+        _alias = null;
+        _isRight = false;
+    }
+
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Cond ">
+    @Override
+    public void exitCond(queryParser.CondContext ctx) {
+        if (_error) return;        
+        
+        List<ClassEntity> tmp = new ArrayList();
+        
+        if (ctx.equal() != null) // zpracovat v exitEqual(): equal 
+        {
+            return;
+        }
+        else if (ctx.OPERATORS() != null)//:innerSelect OPERATORS alias? NAME
+        {                       
+            if(ctx.alias() == null)
+            {
+                // <editor-fold defaultstate="collapsed" desc=" Not Alias ">
+                if (ctx.OPERATORS().getText().compareToIgnoreCase("in") == 0) {
+                    for (ClassEntity ce : _langContext.get(_depth).result) {
+                        boolean isTrue = true;
+                        for (ClassEntity ce2 : _langContext.get(_depth + 1).result) {
+                            switch (ctx.NAME().getText().toLowerCase()) {
+                                case "import":
+                                    if (ce.getImportRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                    {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                case "extend":
+                                    if (ce.getExtendsRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                    {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                case "implements":
+                                    if (ce.getImplementsRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                    {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                case "name":
+                                    if (ce.getName().compareTo(ce2.getName()) != 0) //import extend implement name fqn
+                                    {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                case "fqn":
+                                    if (ce.getName().compareTo(ce2.getFQN()) != 0) //import extend implement name fqn
+                                    {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                default:
+                                    _error = true;
+                                    _errMsg.add(new ErrorMessage("Oèekáváno klíèové slovo ne: " + ctx.NAME().getText(), _error));
+                                    return;                                
+                            }
+                            
+                        }
+                        if (isTrue) {
+                            tmp.add(ce);
+                        }
+                    }
+                } else {
+                    _error = true;
+                    _errMsg.add(new ErrorMessage("Nepovolený operátor: " + ctx.OPERATORS().getText(), _error));
+                    return;
+                }
+
+// </editor-fold>
+            }
+            else    // with alias
+            {                    
+                // <editor-fold defaultstate="collapsed" desc=" Alias ">
+                if (_langContext.get(_depth).mapAS.containsKey(ctx.alias().NAME().getText())) {
+                    if (ctx.OPERATORS().getText().compareToIgnoreCase("in") == 0) {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(ctx.alias().NAME().getText())) {                                
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(ctx.alias().NAME().getText())) {
+                                    boolean isTrue = true;
+                                    for (ClassEntity ce2 : _langContext.get(_depth + 1).result) {
+                                        switch (ctx.NAME().getText().toLowerCase()) {
+                                            case "import":
+                                                if (ce.getImportRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                                {
+                                                    isTrue = false;
+                                                }
+                                                break;
+                                            case "extend":
+                                                if (ce.getExtendsRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                                {
+                                                    isTrue = false;
+                                                }
+                                                break;
+                                            case "implements":
+                                                if (ce.getImplementsRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                                {
+                                                    isTrue = false;
+                                                }
+                                                break;
+                                            case "name":
+                                                if (ce.getName().compareTo(ce2.getName()) != 0) //import extend implement name fqn
+                                                {
+                                                    isTrue = false;
+                                                }
+                                                break;
+                                            case "fqn":
+                                                if (ce.getName().compareTo(ce2.getFQN()) != 0) //import extend implement name fqn
+                                                {
+                                                    isTrue = false;
+                                                }
+                                                break;
+                                            default:
+                                                _error = true;
+                                                _errMsg.add(new ErrorMessage("Oèekáváno klíèové slovo ne: " + ctx.NAME().getText(), _error));
+                                                return;                                            
+                                        }
+                                    }
+                                    if (isTrue) {
+                                        tmp.add(ce);
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + ctx.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    } else {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Nepovolený operátor: " + ctx.OPERATORS().getText(), _error));
+                        return;
+                    }
+                }
+
+// </editor-fold>
+            }
+        }
+        else if (ctx.innerSelect() != null)//:NAME innerSelect          NAME:(EXIST |NotExist)
+        {
+            // <editor-fold defaultstate="collapsed" desc=" (Not)?Exist InnerSelect">
+
+            boolean isEmpty = _langContext.get(_depth + 1).result.isEmpty();            
+            switch (ctx.NAME().getText().toLowerCase()) {
+                case "exist":
+                    if (!isEmpty) {
+                        tmp = _langContext.get(_depth).result;
+                    }
+                case "notexist":
+                    if (isEmpty) {
+                        tmp = _langContext.get(_depth).result;
+                    }
+                default:
+                    _error = true;
+                    _errMsg.add(new ErrorMessage("Nepovolený operátor: " + ctx.NAME().getText(), _error));
+                    return;
+            }
+
+// </editor-fold>    
+        }       
+        else //: (!)? alias? NAME
+        {
+            if(ctx.alias() == null)
+            {
+                // <editor-fold defaultstate="collapsed" desc=" NAME ">
+                switch (ctx.NAME().getText().toLowerCase()) {
+                    case "class":
+                        for (ClassEntity re : _langContext.get(_depth).result) {                            
+                            if (re.getType().compareToIgnoreCase("class") == 0) {
+                                if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "interface":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.getType().compareToIgnoreCase("interface") == 0) {
+                               if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "annotation":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.getType().compareToIgnoreCase("annotation") == 0) {
+                                if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "enum":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.getType().compareToIgnoreCase("enum") == 0) {
+                               if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "public":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.isPublic()) {
+                               if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "protected":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.isProtected()) {
+                                if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "private":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.isPrivate()) {
+                                if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "final":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.isFinal()) {
+                                if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    case "inner":
+                        for (ClassEntity re : _langContext.get(_depth).result) {
+                            if (re.isInner()) {
+                                if(ctx.EXCLAMANTION() == null) {
+                                    tmp.add(re);
+                                }
+                            }
+                            else
+                            {
+                                if(ctx.EXCLAMANTION() != null) {
+                                    tmp.add(re);
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Neoèekávyný vstup: " + ctx.NAME().getText(), _error));
+                        return;
+                }
+
+// </editor-fold>
+            }
+            else
+            {
+                // <editor-fold defaultstate="collapsed" desc=" alias.NAME ">
+                boolean found = false;
+                for (int i = _depth; i >= 0; i--) {
+                    if (_langContext.get(i).mapAS.containsKey(ctx.alias().NAME().getText())) {
+                        List<ClassEntity> tmc = _langContext.get(i).mapAS.get(ctx.alias().NAME().getText());
+                        switch (ctx.NAME().getText().toLowerCase()) {
+                            case "class":
+                                for (ClassEntity re : tmc) {
+                                    if (re.getType().compareToIgnoreCase("class") == 0) {
+                                       if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "interface":
+                                for (ClassEntity re : tmc) {
+                                    if (re.getType().compareToIgnoreCase("interface") == 0) {
+                                       if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "annotation":
+                                for (ClassEntity re : tmc) {
+                                    if (re.getType().compareToIgnoreCase("annotation") == 0) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "enum":
+                                for (ClassEntity re : tmc) {
+                                    if (re.getType().compareToIgnoreCase("enum") == 0) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "public":
+                                for (ClassEntity re : tmc) {
+                                    if (re.isPublic()) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "protected":
+                                for (ClassEntity re : tmc) {
+                                    if (re.isProtected()) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "private":
+                                for (ClassEntity re : tmc) {
+                                    if (re.isPrivate()) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "final":
+                                for (ClassEntity re : tmc) {
+                                    if (re.isFinal()) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            case "inner":
+                                for (ClassEntity re : tmc) {
+                                    if (re.isInner()) {
+                                        if(ctx.EXCLAMANTION() == null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(ctx.EXCLAMANTION() != null) {
+                                            tmp.add(re);
+                                        }
+                                    }
+                                }
+                                break;
+                            default:
+                                _error = true;
+                                _errMsg.add(new ErrorMessage("Neoèekávyný vstup: " + ctx.NAME().getText(), _error));
+                                return;
+                        }
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    _error = true;
+                    _errMsg.add(new ErrorMessage("Alias: " + ctx.alias().NAME().getText() + " nebyl nalezen", true));
+                    return;
+                }
+
+// </editor-fold>
+            }
+        }
+        _langContext.get(_depth).result = tmp;
+    }
+
+    @Override
+    public void enterCond(queryParser.CondContext ctx) {
+        _alias = null;
+    }
+    
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Conditions ">
+
+    @Override
+    public void enterConditions(queryParser.ConditionsContext ctx) {
+        _langContext.get(_depth)._WHERE = true;
+        if (!_langContext.get(_depth)._FROM) {
             _langContext.get(_depth).result = _graphContext.getClassInPackage("*");
             _langContext.get(_depth)._FROM = true;
         }
-    }        
+    }
+
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" PackageName ">
+    @Override
+    public void exitPackageName(queryParser.PackageNameContext ctx) {
+        if (_error) {
+            return;
+        }
+        
+        if (ctx.innerSelect() != null) {
+            if (_as == null) {
+                _langContext.get(_depth).result.addAll(_langContext.get(_depth + 1).result);
+            } else {
+                if (_langContext.get(_depth).mapAS.containsKey(_as)) //duplicitni alias
+                {
+                    _errMsg.add(new ErrorMessage("Tento alias už existuje: " + _as, true));
+                    _error = true;
+                } else {
+                    List<ClassEntity> tmp = _langContext.get(_depth + 1).result;                    
+                    _langContext.get(_depth).mapAS.put(_as, tmp);
+                    _as = null;
+                }
+            }
+        } else if (ctx.EXCLAMANTION() != null) //from  !package
+        {
+            if (_as == null) { //from !package
+                _langContext.get(_depth).result.addAll(_graphContext.getClassInPackage(ctx.STRING().getText()));
+            } else //from !package as name
+            {
+                if (_langContext.get(_depth).mapAS.containsKey(_as)) //duplicitni alias
+                {
+                    _errMsg.add(new ErrorMessage("Tento alias už existuje: " + _as, true));
+                    _error = true;
+                } else {
+                    List<ClassEntity> tmp = _graphContext.getClassInPackage(ctx.STRING().getText());
+                    if (_graphContext.isError()) {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Cest k baliku " + ctx.STRING().getText() + " neexistuje.", _error));
+                        return;
+                    }
+                    _langContext.get(_depth).mapAS.put(_as, tmp);
+                    _as = null;
+                }
+            }
+        } else //from package
+        {            
+            if (_as == null) {
+                _langContext.get(_depth).result.addAll(_graphContext.getClassInPackageRecursion(ctx.STRING().getText()));
+            } else {
+                if (_langContext.get(_depth).mapAS.containsKey(_as)) // duplicitni alias
+                {
+                    _errMsg.add(new ErrorMessage("Tento alias už existuje: " + _as, true));
+                    _error = true;
+                } else {
+                    List<ClassEntity> tmp = _graphContext.getClassInPackageRecursion(ctx.STRING().getText());
+                    if (_graphContext.isError()) // spatna cesta k baliku
+                    {
+                        _error = true;
+                        _errMsg.add(new ErrorMessage("Cest k baliku: " + ctx.STRING().getText() + " neexistuje", _error));
+                        return;
+                    }
+                    _langContext.get(_depth).mapAS.put(_as, tmp);
+                    _as = null;
+                }
+            }
+        }
+    }
+    
+    @Override
+    public void enterPackageName(queryParser.PackageNameContext ctx) {
+        _as = null;
+    }
+
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" Packages ">
+
+    @Override
+    public void exitPackages(queryParser.PackagesContext ctx) {
+        if (_error) {
+            return;
+        }
+        
+        if (ctx.STAR() != null) {
+            List<ClassEntity> tmp = _graphContext.getClassInPackage(ctx.STAR().getText());            
+            if (tmp != null) {
+                _langContext.get(_depth).result.addAll(tmp);
+            }
+        }        
+    }    
     
     @Override
     public void enterPackages(queryParser.PackagesContext ctx) {
         _langContext.get(_depth)._FROM = true;
     }
 
+// </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" ParamName ">
+
     @Override
-    public void exitParamSelect(queryParser.ParamSelectContext ctx) {
+    public void exitParamName(queryParser.ParamNameContext ctx) {
+        if (ctx.innerSelect() != null) {
+            _langContext.get(_depth).selectListInner.addAll(_langContext.get(_depth + 1).result);
+        }
+        _langContext.get(_depth).selectList.add(ctx);
         
     }
+
+    @Override
+    public void enterParamName(queryParser.ParamNameContext ctx) {
+        _alias = null;
+    }
+
+// </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" ParamSelect ">
+
     @Override
     public void enterParamSelect(queryParser.ParamSelectContext ctx) {        
         _langContext.get(_depth)._SELECT = true;
     }
 
+    // </editor-fold>
+    
+    // <editor-fold defaultstate="collapsed" desc=" SelectStatment ">
+    @Override
+    public void exitSelectStatment(queryParser.SelectStatmentContext ctx) {
+        if (_error) {
+            return;
+        }        
+        
+        if (!_langContext.get(_depth)._FROM) {
+            _langContext.get(_depth).result = _graphContext.getClassInPackage("*");
+            _langContext.get(_depth)._FROM = true;
+        }
+        
+        List<ClassEntity> tmp = new ArrayList();
+        
+        if (_langContext.get(_depth).selectList.isEmpty()) // select *
+        {
+            for (String str : _langContext.get(_depth).mapAS.keySet()) {                
+                tmp.addAll(_langContext.get(_depth).mapAS.get(str));
+            }            
+            tmp.addAll(_langContext.get(_depth).result);
+        }
+        
+        for (queryParser.ParamNameContext select : _langContext.get(_depth).selectList) {            
+            if (select.EXCLAMANTION() != null)// ! name | ! name.name
+            {                
+                if (select.NAME().getText().compareToIgnoreCase("extend") == 0) //!name
+                {
+                    if (select.alias() == null) {
+                        for (ClassEntity ce : _langContext.get(_depth).result) {
+                            Iterable<ClassEntity> Related = ce.getInExtendsRelated();
+                            if (Related != null) {
+                                tmp.addAll(Lists.newArrayList(Related));
+                            }
+                        }
+                    } else // !name.name
+                    {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                    Iterable<ClassEntity> Related = ce.getInExtendsRelated();
+                                    if (Related != null) {
+                                        tmp.addAll(Lists.newArrayList(Related));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }
+                } else if (select.NAME().getText().compareToIgnoreCase("import") == 0) {
+                    if (select.alias() == null) {
+                        for (ClassEntity ce : _langContext.get(_depth).result) {
+                            Iterable<ClassEntity> Related = ce.getInImportRelated();
+                            if (Related != null) {
+                                tmp.addAll(Lists.newArrayList(Related));
+                            }
+                        }
+                    } else // !name.name
+                    {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                    Iterable<ClassEntity> Related = ce.getInImportRelated();
+                                    if (Related != null) {
+                                        tmp.addAll(Lists.newArrayList(Related));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }                    
+                } else if (select.NAME().getText().compareToIgnoreCase("implements") == 0) {
+                    if (select.alias() == null) {
+                        for (ClassEntity ce : _langContext.get(_depth).result) {
+                            Iterable<ClassEntity> Related = ce.getInImplementsRelated();
+                            if (Related != null) {
+                                tmp.addAll(Lists.newArrayList(Related));
+                            }
+                        }
+                    } else // !name.name
+                    {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                    Iterable<ClassEntity> Related = ce.getInImplementsRelated();
+                                    if (Related != null) {
+                                        tmp.addAll(Lists.newArrayList(Related));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }                    
+                }
+            } else if (select.method() != null) {
+                if (select.NAME() != null && select.NAME().getText().compareToIgnoreCase("call") == 0) {                    
+                    if (select.method() != null) {                        
+                        if (select.method().getChildCount() != 1) {
+                            for (int i = 0; i < select.method().getChildCount(); i++) {
+                                //rozèíøení dotazy na casti methody !!!
+                            }
+                        } else {
+                            String strTMP = select.method().STRING(0).getText().replaceAll("[' ]", "");
+                            String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
+                            String[] paramTMP = {};
+                            
+                            if (paramsTMP.compareTo("") != 0) {
+                                paramTMP = paramsTMP.split(",");
+                            }
+                            
+                            String name = strTMP.replaceFirst("\\(.*", "");                            
+                            
+                            if (select.alias() == null) {
+                                for (ClassEntity ce : _langContext.get(_depth).result) {
+                                    for (MethodEntity me : ce.getMethodRelated(name)) {                                        
+                                        if (me.getCountPara() != paramTMP.length) {
+                                            continue;
+                                        }
+                                        boolean isTrueMethod = true;
+                                        for (MethParaEntity mpr : me.getMethParaRelated()) {
+                                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                                
+                                                isTrueMethod = false;
+                                            }
+                                        }
+                                        if (isTrueMethod) {
+                                            for (MethodEntity mic : me.getInCallRelated()) {
+                                                tmp.add(mic.getInClassRelated());                                                
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                boolean found = false;
+                                for (int i = _depth; i >= 0; i--) {
+                                    if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                        for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                            for (MethodEntity me : ce.getMethodRelated(name)) {                                                
+                                                if (me.getCountPara() != paramTMP.length) {
+                                                    continue;
+                                                }
+                                                boolean isTrueMethod = true;
+                                                for (MethParaEntity mpr : me.getMethParaRelated()) {
+                                                    if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                                        
+                                                        isTrueMethod = false;
+                                                    }
+                                                }
+                                                if (isTrueMethod) {
+                                                    for (MethodEntity mic : me.getInCallRelated()) {
+                                                        tmp.add(mic.getInClassRelated());                                                        
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    _error = true;
+                                    _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (select.innerSelect() != null) // (inner select)
+            {
+                // zùstane prázdne vlození výsledku je na konci metody _langContext.get(_depth+1).seleceListInner
+            } else // name | name as name
+            {                
+                if (select.NAME().getText().compareToIgnoreCase("extend") == 0) {
+                    if (select.alias() == null) {
+                        for (ClassEntity ce : _langContext.get(_depth).result) {
+                            Iterable<ClassEntity> Related = ce.getExtendsRelated();
+                            if (Related != null) {
+                                tmp.addAll(Lists.newArrayList(Related));
+                            }
+                        }
+                    } else {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {                            
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                    Iterable<ClassEntity> Related = ce.getExtendsRelated();
+                                    if (Related != null) {
+                                        tmp.addAll(Lists.newArrayList(Related));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }
+                } else if (select.NAME().getText().compareToIgnoreCase("import") == 0) {
+                    if (select.alias() == null) {
+                        for (ClassEntity ce : _langContext.get(_depth).result) {
+                            Iterable<ClassEntity> Related = ce.getImportRelated();
+                            if (Related != null) {
+                                tmp.addAll(Lists.newArrayList(Related));
+                            }
+                        }
+                    } else // !name.name
+                    {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                    Iterable<ClassEntity> Related = ce.getImportRelated();
+                                    if (Related != null) {
+                                        tmp.addAll(Lists.newArrayList(Related));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }
+                } else if (select.NAME().getText().compareToIgnoreCase("implements") == 0) {
+                    if (select.alias() == null) {
+                        for (ClassEntity ce : _langContext.get(_depth).result) {
+                            Iterable<ClassEntity> Related = ce.getImplementsRelated();
+                            if (Related != null) {
+                                tmp.addAll(Lists.newArrayList(Related));
+                            }
+                        }
+                    } else {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                for (ClassEntity ce : _langContext.get(i).mapAS.get(select.alias().NAME().getText())) {
+                                    Iterable<ClassEntity> Related = ce.getImplementsRelated();
+                                    if (Related != null) {
+                                        tmp.addAll(Lists.newArrayList(Related));
+                                    }
+                                }
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }
+                } else if (select.NAME().getText().compareToIgnoreCase("this") == 0) {
+                    if (select.alias() == null) {
+                        tmp.addAll(_langContext.get(_depth).result);                        
+                    } else {
+                        boolean found = false;
+                        for (int i = _depth; i >= 0; i--) {
+                            if (_langContext.get(i).mapAS.containsKey(select.alias().NAME().getText())) {
+                                tmp.addAll(_langContext.get(i).mapAS.get(select.alias().NAME().getText()));                                
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            _error = true;
+                            _errMsg.add(new ErrorMessage("Alias: " + select.alias().NAME().getText() + " nebyl nalezen", true));
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        if (!_langContext.get(_depth).selectListInner.isEmpty()) {
+            tmp.addAll(_langContext.get(_depth).selectListInner);
+        }
+        _langContext.get(_depth).result = tmp;
+        if (_depth == 0) {
+            _result = _langContext.get(_depth).result;
+        }
+    }
+    
     @Override
     public void enterSelectStatment(queryParser.SelectStatmentContext ctx) {
         _langContext.add(new LangContext());
     }
 
+// </editor-fold>
     
+    // <editor-fold defaultstate="collapsed" desc=" HelpClass ">
     public class ErrorMessage {
-        public String message;
-        public int line;
-        public int charPositionInLine;                
+
+        public String message;        
+        public boolean isError;
+        
+        public ErrorMessage(String m, boolean e) {
+            message = m;            
+            isError = e;
+        }
+        
+        @Override
+        public String toString() {
+            return (isError ? "Error: " : "Warning: ") + message;
+        }
+        
     }    
     
-    public class LangContext
-    {
+    public class LangContext {
+
         private List<ErrorMessage> errorMessage;
         private List<ClassEntity> result;
         private Identifier id;
-        private boolean error;
         private List<queryParser.ParamNameContext> selectList;
+        private List<ClassEntity> selectListInner;
         private boolean _SELECT;
         private boolean _FROM;
         private boolean _WHERE;
+        Map<String, List<ClassEntity>> mapAS;
         
-        LangContext()
-        {
+        LangContext() {
             errorMessage = new ArrayList();
             result = new ArrayList();
-            id = new Identifier();
-            error = false;
+            id = new Identifier();            
             selectList = new ArrayList();
+            selectListInner = new ArrayList();
+            mapAS = new TreeMap<String, List<ClassEntity>>();
             _SELECT = false;
             _FROM = false;
             _WHERE = false;
         }
     }
     
-    public class Identifier
-    {
+    public class Identifier {
+
         private List<Variable> variable;
-        Identifier()
-        {
-            variable=new ArrayList();
+
+        Identifier() {
+            variable = new ArrayList();
         }
-        public void add(String id, String value)
-        {            
+
+        public void add(String id, String value) {            
             boolean noFind = true;
-            for(Variable v:variable)
-            {
-                if(v.id.compareTo(id) == 0)
-                {
+            for (Variable v : variable) {
+                if (v.id.compareTo(id) == 0) {
                     noFind = false;
                     v.value.add(value);
                 }
             }
-            if(noFind)
-            {
+            if (noFind) {
                 Variable v = new Variable();
                 v.id = id;
                 v.value.add(value);
                 variable.add(v);
             }
         }
-        public List<String> get(String id)
-        {
+
+        public List<String> get(String id) {
             id = id.replaceFirst("\\\\", "$");
-            for(Variable v:variable)
-            {
-                if(v.id.compareTo(id) == 0)
-                {
+            for (Variable v : variable) {
+                if (v.id.compareTo(id) == 0) {
                     return v.value;
                 }
             }
@@ -876,9 +1683,11 @@ public class queryExecute extends queryBaseListener{
         }
     }
     
-    public class Variable
-    {
+    public class Variable {
+
         private String id = null;
         private List<String> value = new ArrayList();
     }
+
+// </editor-fold>
 }

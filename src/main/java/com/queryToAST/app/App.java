@@ -21,6 +21,7 @@ public class App
         if(internalName.compareTo("") == 0)
         {
             internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
+            //internalName= "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\Java-AST-query-language\\target\\queryToAST-app-1.0-SNAPSHOT.jar";
         }
         
         execute exec = new execute(internalName);

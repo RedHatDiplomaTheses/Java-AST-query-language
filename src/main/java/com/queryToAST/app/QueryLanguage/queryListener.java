@@ -50,6 +50,16 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitParamName(queryParser.ParamNameContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link queryParser#alias}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlias(queryParser.AliasContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#alias}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlias(queryParser.AliasContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link queryParser#packages}.
 	 * @param ctx the parse tree
 	 */
@@ -69,6 +79,16 @@ public interface queryListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPackageName(queryParser.PackageNameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link queryParser#as}.
+	 * @param ctx the parse tree
+	 */
+	void enterAs(queryParser.AsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#as}.
+	 * @param ctx the parse tree
+	 */
+	void exitAs(queryParser.AsContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link queryParser#conditions}.
 	 * @param ctx the parse tree
@@ -100,15 +120,15 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitEqual(queryParser.EqualContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#assignment}.
+	 * Enter a parse tree produced by {@link queryParser#rightStatment}.
 	 * @param ctx the parse tree
 	 */
-	void enterAssignment(queryParser.AssignmentContext ctx);
+	void enterRightStatment(queryParser.RightStatmentContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link queryParser#assignment}.
+	 * Exit a parse tree produced by {@link queryParser#rightStatment}.
 	 * @param ctx the parse tree
 	 */
-	void exitAssignment(queryParser.AssignmentContext ctx);
+	void exitRightStatment(queryParser.RightStatmentContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link queryParser#innerSelect}.
 	 * @param ctx the parse tree
