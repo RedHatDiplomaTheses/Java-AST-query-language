@@ -59,11 +59,43 @@ public class execute {
         // create listener then feed to walker
         queryExecute execute = new queryExecute();
         execute.setContext(_graphContext);
-        walker.walk(execute, tree); // walk parse tree
-         
+        walker.walk(execute, tree); // walk parse tree         
         execute.printErr();
         
         return execute.getResult();
     }
+    
+    public List<ClassEntity> query2(String query){
+        if(log)
+        _graphContext.PrintVertex();
         
+        if(log)
+        _graphContext.PrintEdge();
+        
+        if(log)
+        _graphContext.PrintGraph();
+        // create a CharStream that reads from standard input
+        ANTLRInputStream input = new ANTLRInputStream(query);
+        
+        //Listner
+        queryLexer lexer = new queryLexer(input);
+        
+        // create a buffer of tokens pulled from the lexer
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        
+        // create a parser that feeds off the tokens buffer
+        queryParser parser = new queryParser(tokens);
+        
+        ParseTree tree = parser.program(); // begin parsing at init rule
+        // create a standard ANTLR parse tree walker
+        ParseTreeWalker walker = new ParseTreeWalker();
+        // create listener then feed to walker
+        SemantikaGenerator semGen = new SemantikaGenerator();        
+        walker.walk(semGen, tree); // walk parse tree
+         
+        semGen.PrintErr();
+        Stack stack = semGen.getStack();
+        stack.setGraphContext(_graphContext);
+        return stack.run();
+    }
 }

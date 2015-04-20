@@ -50,16 +50,6 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitParamName(queryParser.ParamNameContext ctx);
 	/**
-	 * Enter a parse tree produced by {@link queryParser#alias}.
-	 * @param ctx the parse tree
-	 */
-	void enterAlias(queryParser.AliasContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#alias}.
-	 * @param ctx the parse tree
-	 */
-	void exitAlias(queryParser.AliasContext ctx);
-	/**
 	 * Enter a parse tree produced by {@link queryParser#packages}.
 	 * @param ctx the parse tree
 	 */
@@ -70,6 +60,16 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitPackages(queryParser.PackagesContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link queryParser#packageLink}.
+	 * @param ctx the parse tree
+	 */
+	void enterPackageLink(queryParser.PackageLinkContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#packageLink}.
+	 * @param ctx the parse tree
+	 */
+	void exitPackageLink(queryParser.PackageLinkContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link queryParser#packageName}.
 	 * @param ctx the parse tree
 	 */
@@ -79,6 +79,16 @@ public interface queryListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPackageName(queryParser.PackageNameContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link queryParser#alias}.
+	 * @param ctx the parse tree
+	 */
+	void enterAlias(queryParser.AliasContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#alias}.
+	 * @param ctx the parse tree
+	 */
+	void exitAlias(queryParser.AliasContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link queryParser#as}.
 	 * @param ctx the parse tree
@@ -150,6 +160,26 @@ public interface queryListener extends ParseTreeListener {
 	 */
 	void exitAnnotated(queryParser.AnnotatedContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link queryParser#annotatedStatment}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#annotatedStatment}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link queryParser#annotatedParams}.
+	 * @param ctx the parse tree
+	 */
+	void enterAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link queryParser#annotatedParams}.
+	 * @param ctx the parse tree
+	 */
+	void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link queryParser#method}.
 	 * @param ctx the parse tree
 	 */
@@ -169,34 +199,4 @@ public interface queryListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitIndex(queryParser.IndexContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#annotatedStatment}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#annotatedStatment}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnnotatedStatment(queryParser.AnnotatedStatmentContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#annotatedName}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnnotatedName(queryParser.AnnotatedNameContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#annotatedName}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnnotatedName(queryParser.AnnotatedNameContext ctx);
-	/**
-	 * Enter a parse tree produced by {@link queryParser#annotatedParams}.
-	 * @param ctx the parse tree
-	 */
-	void enterAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link queryParser#annotatedParams}.
-	 * @param ctx the parse tree
-	 */
-	void exitAnnotatedParams(queryParser.AnnotatedParamsContext ctx);
 }

@@ -1,10 +1,5 @@
 package com.queryToAST.app;
 
-import com.queryToAST.app.Graph.GraphContext;
-import com.queryToAST.app.Graph.Vertex.BaseEntity;
-import com.queryToAST.app.Graph.Vertex.ClassEntity;
-import com.queryToAST.app.Graph.Vertex.JarEntity;
-import com.tinkerpop.frames.FramedGraph;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

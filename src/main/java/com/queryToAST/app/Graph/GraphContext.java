@@ -103,6 +103,8 @@ public class GraphContext {
         classEntity.setPrivate(metadata.isPrivate());
         classEntity.setProtected(metadata.isProtected());
         classEntity.setPublic(metadata.isPublic());
+        
+        //import BaseType extends
         if(!(metadata.getBaseType().getFullName().compareTo("java.lang.Object") == 0 || 
                 metadata.getBaseType().getFullName().compareTo("java.lang.Enum") == 0)){
                 classEntity.addExtendsRelated(getClass(metadata.getBaseType().getFullName()));
@@ -866,16 +868,15 @@ public class GraphContext {
 
     public  List<ClassEntity> getClassInPackageRecursion(String text) {
         String [] paths = text.replaceAll("'", "").split("\\.");
-        PackageEntity pe = _jar.getPackageRelated(paths[0]);        
-        
-        if(pe == null){   //Error balik neexistuje
+        PackageEntity pe = _jar.getPackageRelated(paths[0]);                
+        if(pe == null){   //Error balik neexistuje            
             error = true;            
             return null;
         }
         
         for(int i = 1; i < paths.length; i++) {
-            pe = pe.getPackageRelated(paths[i]);
-            if(pe == null){  //Error balik neesixtuje
+            pe = pe.getPackageRelated(paths[i]);            
+            if(pe == null){  //Error balik neesixtuje                
                 return null; 
             }
         }        

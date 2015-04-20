@@ -25,6 +25,9 @@ public interface ClassEntity extends BaseEntity{
     @GremlinGroovy("it.as('x').out('methodRelated').except('x').has('name',name)")
     public Iterable<MethodEntity> getMethodRelated(@GremlinParam("name") String name);
     
+    @GremlinGroovy("it.as('x').out('methodRelated').except('x').has('briefDescription',briefDescription)")
+    public MethodEntity getMethodRelatedBriefDescription(@GremlinParam("briefDescription") String briefDescription);
+    
     @GremlinGroovy("it.as('x').out('importRelated').except('x').has('fqn',fqn)")
     public ClassEntity getImportRelated(@GremlinParam("fqn") String fqn);
     

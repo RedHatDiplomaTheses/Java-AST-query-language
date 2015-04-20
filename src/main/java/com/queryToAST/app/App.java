@@ -34,7 +34,7 @@ public class App
             {
                 break;
             }
-            List<ClassEntity> result = exec.query(query);
+            List<ClassEntity> result = exec.query2(query);
             for(ClassEntity ce : result){
                 System.out.println("FQN : " + ce.getFQN());
             }                     
