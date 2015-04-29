@@ -6,8 +6,8 @@ package com.queryToAST.app.Metadata;
 
 
 
-import com.queryToAST.app.Graph.GraphContext;
-import com.queryToAST.app.Setting;
+import com.queryToAST.app.Graph.GraphContext.GraphContext;
+import com.queryToAST.app.API.Setting;
 import com.strobel.assembler.metadata.JarTypeLoader;
 import com.strobel.core.StringUtilities;
 import com.strobel.decompiler.DecompilerSettings;
@@ -28,7 +28,9 @@ import java.util.jar.JarFile;
 public class JarMetadata {
     private Setting _settings = null;
     private GraphContext _graphContext = null;
-    public JarMetadata(String _internalName, GraphContext graphContext) throws IOException {
+    private boolean load = false;
+    
+    public JarMetadata(String _internalName, GraphContext graphContext) throws IOException {        
         _graphContext = graphContext;
         _settings = new Setting(_internalName,null);
         _settings.setMetadata(true);
@@ -41,7 +43,7 @@ public class JarMetadata {
      * @return
      * @throws IOException
      */
-    private void execute() throws IOException {
+    private void execute() throws IOException {        
         DecompilerSettings settings = DecompilerSettings.javaDefaults();
         settings.setLanguage(Languages.bytecode()); //metadata
         //settings.setLanguage(Languages.java()); // plna dekompilace a AST
@@ -50,6 +52,9 @@ public class JarMetadata {
             System.out.println("File not found: " + this._settings.getInternalName());
         }
         final JarFile jar = new JarFile(jarFile);
+        
+        int countClassFile = jar.size();
+        
         final Enumeration<JarEntry> entries = jar.entries();        
         settings.setShowSyntheticMembers(false);
         settings.setTypeLoader(           
@@ -57,13 +62,17 @@ public class JarMetadata {
         );        
         this._settings.setSettings(settings);        
         _graphContext.setName(jar.getName());
-        try {                        
+        
+        int count = 0;
+        int postup = 0;
+        try {            
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
                 final String name = entry.getName();
                 if (!name.endsWith(".class")) {
                     continue;
-                }
+                }                    
+                
                 final String internalName = StringUtilities.removeRight(name, ".class");
                 this._settings.setInternalName(internalName);
                 
@@ -73,8 +82,20 @@ public class JarMetadata {
                   //  continue;
                 ClassMetadata meta = new ClassMetadata(_settings);
                 _graphContext.CreateClassMetadata(meta.getMetadata());
-                
-            }
+                count++;
+                postup = (int)(((double)count/countClassFile)*100);
+                System.out.print("Dekompilováno:" + postup + "%");
+                if(postup >99) {
+                    System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+                }
+                else if(postup > 9) {
+                    System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+                }
+                else {
+                    System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
+                }                                
+            }           
+            System.out.println("Dekompilace dokoncena.");
         }
         finally {
          //System.out.println("Doplnit hlaseni pøekladu JarMetadata");
