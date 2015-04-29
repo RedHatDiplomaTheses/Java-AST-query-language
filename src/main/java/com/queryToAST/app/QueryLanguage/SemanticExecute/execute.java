@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app.QueryLanguage;
+package com.queryToAST.app.QueryLanguage.SemanticExecute;
 
-import com.queryToAST.app.Graph.GraphContext;
+import com.queryToAST.app.Graph.GraphContext.GraphContext;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import com.queryToAST.app.Metadata.JarMetadata;
-import com.queryToAST.app.QueryLanguage.queryExecute;
-import com.queryToAST.app.QueryLanguage.queryLexer;
-import com.queryToAST.app.QueryLanguage.queryParser;
+import com.queryToAST.app.QueryLanguage.SemanticExecute.queryExecute;
+import com.queryToAST.app.QueryLanguage.LexerParser.queryLexer;
+import com.queryToAST.app.QueryLanguage.LexerParser.queryParser;
 import com.tinkerpop.blueprints.Vertex;
 import java.io.IOException;
 import java.util.List;
@@ -26,13 +26,17 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 public class execute {
     private GraphContext _graphContext = null;
     private boolean log=false;
+    private boolean load=false;
     public execute(String path) throws IOException {
+        if(load)
+        System.out.println("Inicializace grafu.");
         _graphContext = new GraphContext();
-        
+        if(load)
+        System.out.println("Zahájení dekompilace a tvorby databáze grafu.");
         new JarMetadata(path, _graphContext);   
     }
     
-    public List<ClassEntity> query(String query){
+    public List<ClassEntity> queryOld(String query){
         if(log)
         _graphContext.PrintVertex();
         
@@ -65,7 +69,7 @@ public class execute {
         return execute.getResult();
     }
     
-    public List<ClassEntity> query2(String query){
+    public List<ClassEntity> query(String query){
         if(log)
         _graphContext.PrintVertex();
         
@@ -90,7 +94,7 @@ public class execute {
         // create a standard ANTLR parse tree walker
         ParseTreeWalker walker = new ParseTreeWalker();
         // create listener then feed to walker
-        SemantikaGenerator semGen = new SemantikaGenerator();        
+        SemanticGenerator semGen = new SemanticGenerator();        
         walker.walk(semGen, tree); // walk parse tree
          
         semGen.PrintErr();

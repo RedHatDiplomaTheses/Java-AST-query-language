@@ -4,7 +4,7 @@
  */
 package com.queryToAST.app.Core;
 
-import com.queryToAST.app.Setting;
+import com.queryToAST.app.API.Setting;
 import java.io.IOException;
 import java.io.OutputStream;
 

@@ -5,7 +5,7 @@
 package com.queryToAST.app.Metadata;
 
 import com.queryToAST.app.Core.ProcessingData;
-import com.queryToAST.app.Setting;
+import com.queryToAST.app.API.Setting;
 import com.strobel.assembler.InputTypeLoader;
 import com.strobel.assembler.metadata.DeobfuscationUtilities;
 import com.strobel.assembler.metadata.IMetadataResolver;

@@ -10,7 +10,6 @@ import com.tinkerpop.frames.Adjacency;
 import com.tinkerpop.frames.Property;
 import com.tinkerpop.frames.annotations.gremlin.GremlinGroovy;
 import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
-import com.tinkerpop.frames.modules.typedgraph.TypeValue;
 
 /**
  *

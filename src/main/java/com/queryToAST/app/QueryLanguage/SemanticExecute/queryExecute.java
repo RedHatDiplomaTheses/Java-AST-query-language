@@ -2,10 +2,12 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app.QueryLanguage;
+package com.queryToAST.app.QueryLanguage.SemanticExecute;
 
+import com.queryToAST.app.QueryLanguage.LexerParser.queryBaseListener;
+import com.queryToAST.app.QueryLanguage.LexerParser.queryParser;
 import com.google.common.collect.Lists;
-import com.queryToAST.app.Graph.GraphContext;
+import com.queryToAST.app.Graph.GraphContext.GraphContext;
 import com.queryToAST.app.Graph.Vertex.*;
 import java.util.ArrayList;
 import java.util.List;

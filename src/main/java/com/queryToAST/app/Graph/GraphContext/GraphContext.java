@@ -2,37 +2,15 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app.Graph;
+package com.queryToAST.app.Graph.GraphContext;
 
 
-import com.queryToAST.app.Graph.Vertex.AnnParaEntity;
-import com.queryToAST.app.Graph.Vertex.AnnotatedEntity;
-import com.queryToAST.app.Graph.Vertex.ClassEntity;
-import com.queryToAST.app.Graph.Vertex.JarEntity;
-import com.queryToAST.app.Graph.Vertex.MethParaEntity;
-import com.queryToAST.app.Graph.Vertex.MethodEntity;
-import com.queryToAST.app.Graph.Vertex.PackageEntity;
+import com.queryToAST.app.Graph.Vertex.*;
 import com.strobel.assembler.ir.Instruction;
-import com.strobel.assembler.metadata.FieldDefinition;
-import com.strobel.assembler.metadata.MethodDefinition;
-import com.strobel.assembler.metadata.ParameterDefinition;
-import com.strobel.assembler.metadata.TypeDefinition;
-import com.strobel.assembler.metadata.TypeReference;
-import com.strobel.assembler.metadata.annotations.AnnotationAnnotationElement;
-import com.strobel.assembler.metadata.annotations.AnnotationElement;
-import com.strobel.assembler.metadata.annotations.AnnotationParameter;
-import com.strobel.assembler.metadata.annotations.ArrayAnnotationElement;
-import com.strobel.assembler.metadata.annotations.ClassAnnotationElement;
-import com.strobel.assembler.metadata.annotations.ConstantAnnotationElement;
-import com.strobel.assembler.metadata.annotations.CustomAnnotation;
-import com.strobel.assembler.metadata.annotations.EnumAnnotationElement;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.Vertex;
-
+import com.strobel.assembler.metadata.*;
+import com.strobel.assembler.metadata.annotations.*;
+import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.impls.tg.TinkerGraph;
-
 import com.tinkerpop.frames.FramedGraph;
 import com.tinkerpop.frames.FramedGraphFactory;
 import com.tinkerpop.frames.modules.gremlingroovy.GremlinGroovyModule;
@@ -66,10 +44,10 @@ public class GraphContext {
         return framed;
     }       
         
-    public GraphContext() {
-        graph = new TinkerGraph();        
-        FramedGraphFactory factory = new FramedGraphFactory(new GremlinGroovyModule()); //Use the gremlin groovy module
-        framed = factory.create(graph);
+    public GraphContext() {        
+        graph = new TinkerGraph();     
+        FramedGraphFactory factory = new FramedGraphFactory(new GremlinGroovyModule()); //TODO spomaleni na zaèatku programu
+        framed = factory.create(graph);        
     }
 
     public void CreateClassMetadata(TypeDefinition metadata) {        

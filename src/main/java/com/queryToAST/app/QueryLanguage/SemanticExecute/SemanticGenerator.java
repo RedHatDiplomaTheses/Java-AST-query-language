@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app.QueryLanguage;
+package com.queryToAST.app.QueryLanguage.SemanticExecute;
 
+import com.queryToAST.app.QueryLanguage.LexerParser.queryBaseListener;
+import com.queryToAST.app.QueryLanguage.LexerParser.queryParser;
 import com.queryToAST.app.QueryLanguage.WalkerContext.*;
 import com.queryToAST.app.QueryLanguage.WalkerContext.CondContext;
 
@@ -12,7 +14,7 @@ import com.queryToAST.app.QueryLanguage.WalkerContext.CondContext;
  *
  * @author Niriel
  */
-public class SemantikaGenerator extends queryBaseListener{
+public class SemanticGenerator extends queryBaseListener{
     private Stack stack = new Stack();
     
     public Stack getStack() {

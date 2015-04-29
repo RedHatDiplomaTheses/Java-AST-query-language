@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app.QueryLanguage;
+package com.queryToAST.app.QueryLanguage.SemanticExecute;
 
-import com.queryToAST.app.Graph.GraphContext;
+import com.queryToAST.app.Graph.GraphContext.GraphContext;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import com.queryToAST.app.QueryLanguage.WalkerContext.*;
 import java.util.ArrayList;

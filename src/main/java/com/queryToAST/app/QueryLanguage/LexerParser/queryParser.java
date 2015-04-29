@@ -1,4 +1,4 @@
-package com.queryToAST.app.QueryLanguage;
+package com.queryToAST.app.QueryLanguage.LexerParser;
 
 // Generated from query.g by ANTLR 4.5
 import org.antlr.v4.runtime.atn.*;
