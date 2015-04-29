@@ -6,7 +6,7 @@
 package com.queryToAST.app;
 
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
-import com.queryToAST.app.QueryLanguage.execute;
+import com.queryToAST.app.QueryLanguage.SemanticExecute.execute;
 import java.io.IOException;
 import java.util.List;
 import java.util.logging.Level;
@@ -79,7 +79,7 @@ public class QueryJUnitTest {
     @Test
     public void Calls() {
         List<ClassEntity> result = query("select call[*] from *");
-        assertEquals(10, result.size());        
+        assertEquals(13, result.size());        
     }
     
     @Test
@@ -101,6 +101,6 @@ public class QueryJUnitTest {
     }
     
     public List<ClassEntity> query(String q) {
-        return exec.query2(q);
+        return exec.query(q);
     }
 }
