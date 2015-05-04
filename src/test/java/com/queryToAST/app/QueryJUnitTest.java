@@ -67,7 +67,7 @@ public class QueryJUnitTest {
     @Test
     public void Import() {
         List<ClassEntity> result = query("select import from *");
-        assertEquals(50, result.size());        
+        assertEquals(51, result.size());        
     }
     
     @Test
@@ -79,7 +79,7 @@ public class QueryJUnitTest {
     @Test
     public void Calls() {
         List<ClassEntity> result = query("select call[*] from *");
-        assertEquals(13, result.size());        
+        assertEquals(28, result.size());        
     }
     
     @Test

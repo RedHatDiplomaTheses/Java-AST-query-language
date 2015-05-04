@@ -16,8 +16,7 @@ public class App
 {
     public static void main( String[] args ) throws Exception
     {
-        if(args.length != 1) {
-            System.err.println("Error:Špatný poèet argumentu.");
+        if(args.length != 1) {           
             help();
         }
         else if(args[0].compareToIgnoreCase("-help")==0) {
@@ -25,7 +24,8 @@ public class App
         }
         else if(args[0].compareToIgnoreCase("-console")==0) {
             console();
-        }        
+        }
+        console();
     }
     
     public static void console() throws IOException {
@@ -48,11 +48,13 @@ public class App
             if(query.compareTo("") == 0)
             {
                 break;
-            }
+            }            
             List<ClassEntity> result = exec.query(query);
-            for(ClassEntity ce : result){
-                System.out.println("FQN : " + ce.getFQN());
-            }                     
+            if(result != null) {
+                for(ClassEntity ce : result){
+                    System.out.println("FQN : " + ce.getFQN());
+                }
+            }
         }   
     }
     

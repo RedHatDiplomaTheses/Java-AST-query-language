@@ -35,7 +35,7 @@ public class Stack {
     }
     
     public List<ClassEntity> run() {
-        execute2 exe = new execute2();
+        Interpret exe = new Interpret();
         exe.setContext(ctx);        
         for(Command com:Stack) {
             switch(com.getComand()) {                
@@ -115,6 +115,10 @@ public class Stack {
                     System.out.println("Error: Neznámí prikaz vnitøní chyba aplikace -> 'Stack.class'");
                     break;
             }
+        }
+        if(exe.isError()){
+            exe.printErr();
+            return null;
         }
         return exe.getResult();
     }

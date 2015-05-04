@@ -51,16 +51,12 @@ public class JarMetadata {
         if (!jarFile.exists()) {
             System.out.println("File not found: " + this._settings.getInternalName());
         }
-        final JarFile jar = new JarFile(jarFile);
-        
-        int countClassFile = jar.size();
-        
-        final Enumeration<JarEntry> entries = jar.entries();        
+        final JarFile jar = new JarFile(jarFile);        
+        int countClassFile = jar.size();        
+        final Enumeration<JarEntry> entries = jar.entries();
         settings.setShowSyntheticMembers(false);
-        settings.setTypeLoader(           
-                new JarTypeLoader(jar)                            
-        );        
-        this._settings.setSettings(settings);        
+        settings.setTypeLoader(new JarTypeLoader(jar));
+        this._settings.setSettings(settings);
         _graphContext.setName(jar.getName());
         
         int count = 0;
@@ -93,8 +89,8 @@ public class JarMetadata {
                 }
                 else {
                     System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-                }                                
-            }           
+                }
+            }
             System.out.println("Dekompilace dokoncena.");
         }
         finally {

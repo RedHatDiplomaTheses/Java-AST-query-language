@@ -10,19 +10,15 @@ import com.queryToAST.app.Graph.GraphContext.GraphContext;
 import com.queryToAST.app.Graph.Vertex.*;
 import com.queryToAST.app.QueryLanguage.WalkerContext.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.tree.ErrorNode;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  *
  * @author Niriel
  */
-public class execute2 {
+public class Interpret {
     
     // <editor-fold defaultstate="collapsed" desc=" Property ">
     private GraphContext _graphContext = null;
@@ -49,6 +45,10 @@ public class execute2 {
         }
     }
     
+    public boolean isError() {
+        return _error;
+    }
+    
     public GraphContext getContext() {
         return _graphContext;
     }
@@ -59,24 +59,6 @@ public class execute2 {
     
     public List<ClassEntity> getResult() {
         return _result;
-    }
-
-// </editor-fold>
-        
-    // <editor-fold defaultstate="collapsed" desc=" Every terminal ">
-
-    public void visitErrorNode(ErrorNode node) {
-        _error =true;
-        _errMsg.add(new ErrorMessage("Chyba v lexikální alalýze nebo v gramatice.", _error));
-    }
-    
-    public void visitTerminal(TerminalNode node) {
-    }
-    
-    public void exitEveryRule(ParserRuleContext ctx) {
-    }
-        
-    public void enterEveryRule(ParserRuleContext ctx) {
     }
 
 // </editor-fold>
@@ -1293,7 +1275,7 @@ public class execute2 {
     
     // <editor-fold defaultstate="collapsed" desc=" ParamSelect ">    
     public void enterParamSelect(ParamSelectContext ctx) {        
-        _langContext.get(_depth)._SELECT = true;
+        _langContext.get(_depth)._SELECT = true;        
     }
     // </editor-fold>
     
@@ -1304,6 +1286,11 @@ public class execute2 {
         }        
         
         if (!_langContext.get(_depth)._FROM) {
+            if(!_langContext.get(_depth)._SELECT && !_langContext.get(_depth)._WHERE) {
+                _error = true;
+                _errMsg.add(new ErrorMessage("Špatný vstup.", _error));
+                return;
+            }
             _langContext.get(_depth).result = _graphContext.getClassInPackage("*");
             _langContext.get(_depth)._FROM = true;
         }

@@ -45,9 +45,9 @@ public class GraphContext {
     }       
         
     public GraphContext() {        
-        graph = new TinkerGraph();     
+        graph = new TinkerGraph();
         FramedGraphFactory factory = new FramedGraphFactory(new GremlinGroovyModule()); //TODO spomaleni na zaèatku programu
-        framed = factory.create(graph);        
+        framed = factory.create(graph);
     }
 
     public void CreateClassMetadata(TypeDefinition metadata) {        
@@ -352,7 +352,7 @@ public class GraphContext {
                         setClassAnnotationElement((ClassAnnotationElement)ap.getValue(), ape);
                         break;
                     case Enum:
-                        setEnumAnnotationElementType((EnumAnnotationElement)ap.getValue(), ape);
+                        setEnumAnnotationElement((EnumAnnotationElement)ap.getValue(), ape);
                         break;
                 }
             }
@@ -443,7 +443,7 @@ public class GraphContext {
                 }
                 if(ins.toString().contains("INVOKE"))
                 {
-                    if(ins.toString().contains("STATIC")) //INVOKESPECIAL
+                    if(ins.toString().contains("STATIC"))
                     {
                         setCall(ins.toString(), ME, true);
                     }                    
@@ -461,7 +461,7 @@ public class GraphContext {
                     }
                     else if(ins.toString().contains("SPECIAL"))
                     {
-                        //setCall(ins.toString(), ME, false);                    
+                        setCall(ins.toString(), ME, false);     //TODO mozna zakomentovat
                     }
                 }
                     
@@ -492,8 +492,7 @@ public class GraphContext {
                         + "\nMember : " + ap.getMember());
             AnnParaEntity ape = APE.addAnnParaRelated();
             ape.setName(ap.getMember());
-            ape.setType(ap.getValue().getElementType().name());
-            
+            ape.setType(ap.getValue().getElementType().name());            
             switch(ap.getValue().getElementType()){
                 case Annotation:
                     setAnnotationAnnotationElement((AnnotationAnnotationElement)ap.getValue(), ape);
@@ -508,7 +507,7 @@ public class GraphContext {
                     setClassAnnotationElement((ClassAnnotationElement)ap.getValue(),ape);
                     break;
                 case Enum:
-                    setEnumAnnotationElementType((EnumAnnotationElement)ap.getValue(),ape);
+                    setEnumAnnotationElement((EnumAnnotationElement)ap.getValue(),ape);
                     break;
             }
         }
@@ -535,7 +534,7 @@ public class GraphContext {
                     setClassAnnotationElement((ClassAnnotationElement)ae,ape);
                     break;
                 case Enum:
-                    setEnumAnnotationElementType((EnumAnnotationElement)ae,ape);
+                    setEnumAnnotationElement((EnumAnnotationElement)ae,ape);
                     break;
             }
         }
@@ -562,7 +561,7 @@ public class GraphContext {
         APE.setValue(classAnnotationElement.getClassType().getName());
     }
 
-    private void setEnumAnnotationElementType(EnumAnnotationElement enumAnnotationElement,AnnParaEntity APE) {
+    private void setEnumAnnotationElement(EnumAnnotationElement enumAnnotationElement,AnnParaEntity APE) {
         APE.setValue(enumAnnotationElement.getEnumConstantName());
         APE.setType("enum");
         APE.setFQN(enumAnnotationElement.getEnumType().getFullName());
@@ -621,7 +620,8 @@ public class GraphContext {
         me.setType("method");
         me.setBriefDescription(Brief);
         me.setFQN(FQN);
-        me.setNotDecompile(true);        
+        me.setNotDecompile(true);
+        ME.addCallRelated(me);
         
     }
     
@@ -810,9 +810,7 @@ public class GraphContext {
             }
         return null;
     }
-    
-    
-    
+        
     /* 
     *   Èást volana queryExecute
     */

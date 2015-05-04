@@ -9,6 +9,9 @@ import com.queryToAST.app.QueryLanguage.LexerParser.queryBaseListener;
 import com.queryToAST.app.QueryLanguage.LexerParser.queryParser;
 import com.queryToAST.app.QueryLanguage.WalkerContext.*;
 import com.queryToAST.app.QueryLanguage.WalkerContext.CondContext;
+import java.util.ArrayList;
+import java.util.List;
+import org.antlr.v4.runtime.tree.ErrorNode;
 
 /**
  *
@@ -16,26 +19,43 @@ import com.queryToAST.app.QueryLanguage.WalkerContext.CondContext;
  */
 public class SemanticGenerator extends queryBaseListener{
     private Stack stack = new Stack();
+    private boolean _error = false;
+    private List<ErrorMessage> _errMsg = new ArrayList();
     
     public Stack getStack() {
         return this.stack;
     }
     
+    public boolean isError() {
+        return this._error;
+    }
+    
     public void PrintErr(){
-        
+        for (ErrorMessage em : _errMsg) {
+            System.out.println(em);
+        }
+    }
+    
+    @Override
+    public void visitErrorNode(ErrorNode node) {
+        _error =true;
+        _errMsg.add(new ErrorMessage("Chyba v lexikální alalýze nebo v gramatice.", _error));
     }
     
     // <editor-fold defaultstate="collapsed" desc=" InnerSelect ">    
+    @Override
     public void exitInnerSelect(queryParser.InnerSelectContext ctx) {        
         stack.add(KeyCommand.exitInnerSelect, new InnerSelectContext());
     }
         
+    @Override
     public void enterInnerSelect(queryParser.InnerSelectContext ctx) {
        stack.add(KeyCommand.enterInnerSelect, new InnerSelectContext());
     }
 // </editor-fold>
     
     // <editor-fold defaultstate="collapsed" desc=" Annotated ">    
+    @Override
     public void exitAnnotated(queryParser.AnnotatedContext ctx) {
         AnnotatedContext actx = new AnnotatedContext();
         if (ctx.method() != null){
@@ -151,7 +171,9 @@ public class SemanticGenerator extends queryBaseListener{
                 case "~" :
                     ectx.setOPERATORS(Operators.SIMILAR);
                     break;
-                case "IN" :
+                case "in" :
+                    _errMsg.add(new ErrorMessage("Tento operátor není povolen:" + ctx.OPERATORS().getText(), true));
+                    _error = true;
                     ectx.setOPERATORS(Operators.IN);
                     break;
             }
@@ -185,7 +207,33 @@ public class SemanticGenerator extends queryBaseListener{
                 method.Description(ctx.method().STRING() != null ? ctx.method().STRING().get(0).getText().replaceAll("[' ]", "") : null );
             }
             else {
-                for(int i =0; i < ctx.method().getChildCount() ; i++) {
+                if(ctx.method().NAME().size() > 2) {
+                    _errMsg.add(new ErrorMessage("Maximální poèet argumentù je 2 ne:" + ctx.method().NAME().size(),true));
+                    _error = true;
+                }
+                 boolean name=false;
+                boolean arg=false;
+                for(int i =0; i < ctx.method().NAME().size() ; i++) {
+                    switch(ctx.method().NAME(i).getText().toLowerCase()){
+                        case "name":
+                            if(name) {
+                                _errMsg.add(new ErrorMessage("Duplicitní parametr:" + ctx.method().NAME(i).getText(), true));
+                                _error = true;
+                            }
+                            name = true;
+                            break;
+                        case "arg":
+                            if(arg) {
+                                _errMsg.add(new ErrorMessage("Duplicitní parametr:" + ctx.method().NAME(i).getText(), true));
+                                _error = true;
+                            }
+                            arg = true;
+                            break;
+                        default:
+                            _errMsg.add(new ErrorMessage("Neznámí parametr:" + ctx.method().NAME(i).getText(), true));
+                            _error = true;
+                            break;
+                    }
                     method.Arg(
                             ctx.method().NAME(i).getText(),
                             ctx.method().STRING(i).getText().replace("'", "")
@@ -212,7 +260,7 @@ public class SemanticGenerator extends queryBaseListener{
             cctx.Equal(true);
         }
         if (ctx.OPERATORS() != null) {
-            switch(ctx.OPERATORS().getText()) {
+            switch(ctx.OPERATORS().getText().toLowerCase()) {
                 case "=" :
                     cctx.OPERATORS(Operators.EQUAL);
                     break;
@@ -222,17 +270,49 @@ public class SemanticGenerator extends queryBaseListener{
                 case "~" :
                     cctx.OPERATORS(Operators.SIMILAR);
                     break;
-                case "IN" :
+                case "in" :
                     cctx.OPERATORS(Operators.IN);
                     break;
             }            
         }
         if (ctx.innerSelect() != null) {
             cctx.InnerSelect(true);
-        }       
-        if (ctx.NAME() != null) {
-            cctx.NAME(ctx.NAME().getText());
+            if(ctx.OPERATORS() != null) {
+                if(ctx.OPERATORS().getText().compareToIgnoreCase("in") != 0) {
+                    _errMsg.add(new ErrorMessage("Tento operátor není povolen:" + ctx.OPERATORS().getText(),true));
+                    _error = true;
+                }
+            }
         }
+        else {
+            if(ctx.OPERATORS() != null) {
+                if(ctx.OPERATORS().getText().compareToIgnoreCase("in") == 0) {
+                    _errMsg.add(new ErrorMessage("Tento operátor není povolen:" + ctx.OPERATORS().getText(),true));
+                    _error = true;
+                }
+            }
+        }
+        
+        if (ctx.NAME() != null) {
+            switch(ctx.NAME().getText().toLowerCase()) {
+                case "import":
+                    break;
+                case "extends":
+                    break;
+                case "implements":
+                    break;
+                case "name":
+                    break;
+                case "fqn":
+                    break;
+                default :
+                    _errMsg.add(new ErrorMessage("Neznáme klíèové slovo:" + ctx.NAME().getText(),true));
+                    _error = true;
+                    break;
+            }
+            cctx.NAME(ctx.NAME().getText());            
+        }
+        
         if(ctx.EXIST() != null) {
             cctx.EXIST(true);
         }
@@ -315,11 +395,35 @@ public class SemanticGenerator extends queryBaseListener{
             PNctx.ALIAS(ctx.alias().getText().replace(".", ""));        
         }        
         PNctx.EXCLAMANTION(ctx.EXCLAMANTION() != null);        
-        PNctx.InnerSelect(ctx.innerSelect() != null);                        
-        PNctx.NAME(ctx.NAME() != null ? ctx.NAME().getText() : null);
+        PNctx.InnerSelect(ctx.innerSelect() != null);
+                
+        if(ctx.NAME() != null) {
+            switch(ctx.NAME().getText().toLowerCase()) {
+                case "extends":
+                    break;
+                case "import":
+                    break;
+                case "implements":
+                    break;
+                case "call":
+                    break;
+                default:
+                    _errMsg.add(new ErrorMessage("Neznámí parametr:" + ctx.NAME().getText(), true));
+                    _error = true;
+                    break;
+            }
+            PNctx.NAME(ctx.NAME().getText());
+        }
+        else {
+            PNctx.NAME(null);
+        }
+        
         PNctx.STAR(ctx.STAR() != null);
         
         if(ctx.method() != null) {
+            if(ctx.NAME().getText().compareToIgnoreCase("call") != 0) {
+                _errMsg.add(new ErrorMessage("Chybný parametr:" + ctx.NAME().getText(), true));
+            }
             MethodContext method = new MethodContext();
             if(ctx.method().getChildCount() == 1) {
                 if (ctx.method().STAR() != null) {
@@ -330,7 +434,33 @@ public class SemanticGenerator extends queryBaseListener{
                 }
             }
             else {
-                for(int i =0; i < ctx.method().NAME().size() ; i++) {                    
+                if(ctx.method().NAME().size() > 2) {
+                    _errMsg.add(new ErrorMessage("Maximální poèet argumentù je 2 ne:" + ctx.method().NAME().size(),true));
+                    _error = true;
+                }
+                boolean name=false;
+                boolean arg=false;
+                for(int i =0; i < ctx.method().NAME().size() ; i++) {
+                    switch(ctx.method().NAME(i).getText().toLowerCase()){
+                        case "name":
+                            if(name) {
+                                _errMsg.add(new ErrorMessage("Duplicitní parametr:" + ctx.method().NAME(i).getText(), true));
+                                _error = true;
+                            }
+                            name = true;
+                            break;
+                        case "arg":
+                            if(arg) {
+                                _errMsg.add(new ErrorMessage("Duplicitní parametr:" + ctx.method().NAME(i).getText(), true));
+                                _error = true;
+                            }
+                            arg = true;
+                            break;
+                        default:
+                            _errMsg.add(new ErrorMessage("Neznámí parametr:" + ctx.method().NAME(i).getText(), true));
+                            _error = true;
+                            break;
+                    }
                     method.Arg(
                             ctx.method().NAME(i).getText(),
                             ctx.method().STRING(i).getText().replace("'", "")

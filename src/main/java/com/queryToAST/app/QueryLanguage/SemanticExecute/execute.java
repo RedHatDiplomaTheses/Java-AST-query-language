@@ -8,10 +8,8 @@ package com.queryToAST.app.QueryLanguage.SemanticExecute;
 import com.queryToAST.app.Graph.GraphContext.GraphContext;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import com.queryToAST.app.Metadata.JarMetadata;
-import com.queryToAST.app.QueryLanguage.SemanticExecute.queryExecute;
 import com.queryToAST.app.QueryLanguage.LexerParser.queryLexer;
 import com.queryToAST.app.QueryLanguage.LexerParser.queryParser;
-import com.tinkerpop.blueprints.Vertex;
 import java.io.IOException;
 import java.util.List;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -96,8 +94,12 @@ public class execute {
         // create listener then feed to walker
         SemanticGenerator semGen = new SemanticGenerator();        
         walker.walk(semGen, tree); // walk parse tree
-         
-        semGen.PrintErr();
+        
+        if(semGen.isError()) {
+            semGen.PrintErr();
+            return null;
+        }
+        
         Stack stack = semGen.getStack();
         stack.setGraphContext(_graphContext);
         return stack.run();
