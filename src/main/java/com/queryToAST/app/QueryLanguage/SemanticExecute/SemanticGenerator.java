@@ -40,7 +40,7 @@ public class SemanticGenerator extends queryBaseListener{
     public void visitErrorNode(ErrorNode node) {
         _error =true;
         _errMsg.add(new ErrorMessage("Chyba v lexikální alalýze nebo v gramatice.", _error));
-    }
+    }        
     
     // <editor-fold defaultstate="collapsed" desc=" InnerSelect ">    
     @Override
@@ -507,7 +507,9 @@ public class SemanticGenerator extends queryBaseListener{
     // <editor-fold defaultstate="collapsed" desc=" SelectStatment ">
     @Override
     public void exitSelectStatment(queryParser.SelectStatmentContext ctx) {
-       stack.add(KeyCommand.exitSelectStatment, new SelectStatmentContext());
+        SelectStatmentContext selectStatmentContext = new SelectStatmentContext();        
+        selectStatmentContext.setUnique((ctx.UNIQUE() != null));        
+       stack.add(KeyCommand.exitSelectStatment, selectStatmentContext);
     }
         
     @Override

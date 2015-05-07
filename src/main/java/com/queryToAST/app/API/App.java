@@ -39,6 +39,9 @@ public class App
         }
         
         execute exec = new execute(internalName);
+        if(exec.isError()) {
+            return;
+        }
         
         while(true)
         {

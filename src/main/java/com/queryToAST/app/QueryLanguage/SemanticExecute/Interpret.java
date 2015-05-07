@@ -1797,16 +1797,22 @@ public class Interpret {
             tmp.addAll(_langContext.get(_depth).selectListInner);
         }
         
+        if(ctx.isUnique()){
+            removeReduntant(tmp);
+        }        
         _langContext.get(_depth).result = tmp;
         
         if (_depth == 0) {
             _result = _langContext.get(_depth).result;
-        }
+        }        
     }
         
     public void enterSelectStatment(SelectStatmentContext ctx) {        
-        if(_langContext.size() > 0 && _langContext.size() > _depth) {         
-            _langContext.remove(_depth);
+        if(_langContext.size() > 0 && _langContext.size() > _depth) {
+            for(int i = _langContext.size() - 1 ; i >= _depth; i--) {
+                _langContext.remove(i);
+            }
+            //_langContext.remove(_depth);
         }         
         _langContext.add(new LangContext());        
     }
@@ -1831,6 +1837,23 @@ public class Interpret {
             }
         }
         return tmp;
+    }
+
+    private void removeReduntant(List<ClassEntity> tmp) {
+        List<ClassEntity> result= new ArrayList();       
+        for(ClassEntity ce:tmp) {
+            boolean contain =false;
+            for(ClassEntity cr:result) {
+                if(cr.getFQN().compareTo(ce.getFQN())==0) {
+                    contain = true;
+                }
+            }
+            if(!contain) {
+                result.add(ce);
+            }
+        }
+        tmp.clear();
+        tmp.addAll(result);
     }
 
 // </editor-fold>

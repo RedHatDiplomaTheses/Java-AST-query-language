@@ -10,5 +10,14 @@ package com.queryToAST.app.QueryLanguage.WalkerContext;
  * @author Niriel
  */
 public class SelectStatmentContext implements IContext{
-    //Empty
+    private boolean unique=false;
+
+    public boolean isUnique() {
+        return unique;
+    }
+
+    public void setUnique(boolean unique) {
+        this.unique = unique;
+    }
+        
 }

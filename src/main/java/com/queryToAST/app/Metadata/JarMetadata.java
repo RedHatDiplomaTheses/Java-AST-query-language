@@ -29,6 +29,7 @@ public class JarMetadata {
     private Setting _settings = null;
     private GraphContext _graphContext = null;
     private boolean load = false;
+    private boolean error = false;
     
     public JarMetadata(String _internalName, GraphContext graphContext) throws IOException {        
         _graphContext = graphContext;
@@ -50,6 +51,8 @@ public class JarMetadata {
         final File jarFile = new File(this._settings.getInternalName());
         if (!jarFile.exists()) {
             System.out.println("File not found: " + this._settings.getInternalName());
+            error = true;
+            return;
         }
         final JarFile jar = new JarFile(jarFile);
         final Enumeration<JarEntry> entries = jar.entries();
@@ -83,4 +86,7 @@ public class JarMetadata {
         }
     }
     
+    public boolean isError(){
+        return error;
+    }
 }

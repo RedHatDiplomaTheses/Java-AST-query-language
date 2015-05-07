@@ -25,13 +25,15 @@ public class execute {
     private GraphContext _graphContext = null;
     private boolean log=false;
     private boolean load=false;
+    private boolean error = false;
     public execute(String path) throws IOException {
         if(load)
         System.out.println("Inicializace grafu.");
         _graphContext = new GraphContext();
         if(load)
         System.out.println("Zahájení dekompilace a tvorby databáze grafu.");
-        new JarMetadata(path, _graphContext);   
+        JarMetadata jarMetadata = new JarMetadata(path, _graphContext);
+        error = jarMetadata.isError();
     }
     
     public List<ClassEntity> queryOld(String query){
@@ -103,5 +105,9 @@ public class execute {
         Stack stack = semGen.getStack();
         stack.setGraphContext(_graphContext);
         return stack.run();
+    }
+    
+    public boolean isError(){
+        return error;
     }
 }
