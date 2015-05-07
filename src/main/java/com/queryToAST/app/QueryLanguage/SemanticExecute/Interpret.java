@@ -106,7 +106,7 @@ public class Interpret {
                 return;
             }
         } else {
-            alTmp = _langContext.get(_index).result;
+            alTmp = _langContext.get(_depth).result;
         }
         // </editor-fold>                                                
         
@@ -390,9 +390,9 @@ public class Interpret {
             }
             else if (ctx.getRsctx().getNAME() != null) { // (as.)? NAME = (AS.)? NAME (M:N)
                 // <editor-fold defaultstate="collapsed" desc=" as? NAME = as? NAME ">
-                List<ClassEntity> ceTmp = null;
-                if (ctx.getAlias() != null) {
-                    String alias = ctx.getAlias();
+                List<ClassEntity> ceTmp = null;                
+                if (ctx.getRsctx().getAlias() != null) {
+                    String alias = ctx.getRsctx().getAlias();
                     boolean isTrue = false;
                     for (int i = _depth; i >= 0; i--) {
                         if (_langContext.get(i).mapAS.containsKey(alias)) {
@@ -493,7 +493,7 @@ public class Interpret {
                 switch (ctx.getNAME().toLowerCase()) {
                     case "name":
                         for (ClassEntity ce : alTmp) {                            
-                            for ( AnnParaEntity sec : _annotatedRight) {
+                            for ( AnnParaEntity sec : _annotatedRight) {                                
                                 if (ce.getName().compareTo(sec.getValue()) == 0) {
                                     if (ctx.getOPERATORS() == Operators.EQUAL) {
                                         tmp.add(ce);
@@ -599,8 +599,8 @@ public class Interpret {
             else if(ctx.getRsctx().getNAME() != null) {                
                 // <editor-fold defaultstate="collapsed" desc=" @Annotated = NAME ">
                 List<ClassEntity> ceTmp = null;
-                if (ctx.getAlias() != null) {
-                    String alias = ctx.getAlias();
+                if (ctx.getRsctx().getAlias() != null) {
+                    String alias = ctx.getRsctx().getAlias();
                     boolean isTrue = false;
                     for (int i = _depth; i >= 0; i--) {
                         if (_langContext.get(i).mapAS.containsKey(alias)) {

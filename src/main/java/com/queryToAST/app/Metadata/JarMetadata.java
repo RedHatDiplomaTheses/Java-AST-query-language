@@ -51,16 +51,13 @@ public class JarMetadata {
         if (!jarFile.exists()) {
             System.out.println("File not found: " + this._settings.getInternalName());
         }
-        final JarFile jar = new JarFile(jarFile);        
-        int countClassFile = jar.size();        
+        final JarFile jar = new JarFile(jarFile);
         final Enumeration<JarEntry> entries = jar.entries();
         settings.setShowSyntheticMembers(false);
         settings.setTypeLoader(new JarTypeLoader(jar));
         this._settings.setSettings(settings);
         _graphContext.setName(jar.getName());
-        
-        int count = 0;
-        int postup = 0;
+                
         try {            
             while (entries.hasMoreElements()) {
                 final JarEntry entry = entries.nextElement();
@@ -77,21 +74,9 @@ public class JarMetadata {
                 //if(internalName.compareTo("langTest/One/imp/Classes2") != 0)
                   //  continue;
                 ClassMetadata meta = new ClassMetadata(_settings);
-                _graphContext.CreateClassMetadata(meta.getMetadata());
-                count++;
-                postup = (int)(((double)count/countClassFile)*100);
-                System.out.print("Dekompilováno:" + postup + "%");
-                if(postup >99) {
-                    System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-                }
-                else if(postup > 9) {
-                    System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-                }
-                else {
-                    System.out.print("\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b");
-                }
+                _graphContext.CreateClassMetadata(meta.getMetadata());                              
             }
-            System.out.println("Dekompilace dokoncena.");
+            
         }
         finally {
          //System.out.println("Doplnit hlaseni pøekladu JarMetadata");
