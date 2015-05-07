@@ -102,7 +102,7 @@ public class Interpret {
             }
             if (!isTrue) {
                 _error = true;
-                _errMsg.add(new ErrorMessage("Neexistující alias: " + _alias, isTrue));
+                _errMsg.add(new ErrorMessage("Neexistující alias: " + _alias, _error));
                 return;
             }
         } else {
@@ -117,15 +117,16 @@ public class Interpret {
         String method = null;
         
         if (ctx.getMethod() != null) {
-            // <editor-fold defaultstate="collapsed" desc=" Dodelat ">
-            strTMP = ctx.getMethod().Description();
-            paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");            
-            
-            if (paramsTMP.compareTo("") != 0) {
-                paramTMP = paramsTMP.split(",");
-            }
-            method = strTMP.replaceFirst("\\(.*", "");
-
+            //<editor-fold defaultstate="collapsed" desc=" Dodelat ">
+//            strTMP = ctx.getMethod().Description();
+//            paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");            
+//            
+//            if (paramsTMP.compareTo("") != 0) {
+//                paramTMP = paramsTMP.split(",");
+//            }
+//            method = strTMP.replaceFirst("\\(.*", "");
+            _error = true;
+            _errMsg.add(new ErrorMessage("Anotace metod ještì nejsou plnì implementovány.", _error));
         // </editor-fold>
         }
         else {
@@ -271,8 +272,7 @@ public class Interpret {
         List<ClassEntity> tmp = new ArrayList();
         List<ClassEntity> alTmp = null;
 
-        // <editor-fold defaultstate="collapsed" desc=" IF alias ">
-            alTmp = null;
+        // <editor-fold defaultstate="collapsed" desc=" IF alias ">           
             if (ctx.getAlias() != null) {
                 String alias = ctx.getAlias();
                 boolean isTrue = false;
@@ -285,11 +285,11 @@ public class Interpret {
                 }
                 if (!isTrue) {
                     _error = true;
-                    _errMsg.add(new ErrorMessage("Neexistující alias: " + alias, isTrue));
+                    _errMsg.add(new ErrorMessage("Neexistující alias: " + alias, _error));
                     return;
                 }
             } else {
-                alTmp = _langContext.get(_index).result;
+                alTmp = _langContext.get(_depth).result;
             }
 
             // </editor-fold>
@@ -403,11 +403,11 @@ public class Interpret {
                     }
                     if (!isTrue) {
                         _error = true;
-                        _errMsg.add(new ErrorMessage("Neexistující alias: " + alias, isTrue));
+                        _errMsg.add(new ErrorMessage("Neexistující alias: " + alias, _error));
                         return;
                     }
                 } else {
-                    ceTmp = _langContext.get(_index).result;
+                    ceTmp = _langContext.get(_depth).result;
                 }
                 
                 String cmpNAME = ctx.getRsctx().getNAME();
@@ -611,11 +611,11 @@ public class Interpret {
                     }
                     if (!isTrue) {
                         _error = true;
-                        _errMsg.add(new ErrorMessage("Neexistující alias: " + alias, isTrue));
+                        _errMsg.add(new ErrorMessage("Neexistující alias: " + alias, _error));
                         return;
                     }
                 } else {
-                    ceTmp = _langContext.get(_index).result;
+                    ceTmp = _langContext.get(_depth).result;
                 }
                 String cmpNAME =ctx.getRsctx().getNAME();
                 for (int i = 0; i < _annotatedLeft.size(); i++) {
@@ -699,7 +699,7 @@ public class Interpret {
             //dodelat nebo vzit z annotated
         }
          alTmp.clear();
-         alTmp.addAll(tmp);        
+         alTmp.addAll(tmp);         
     }
     
     public void enterEqual(EqualContext ctx) {
@@ -727,34 +727,37 @@ public class Interpret {
                 if (ctx.OPERATORS() == Operators.IN) {
                     for (ClassEntity ce : _langContext.get(_depth).result) {
                         boolean isTrue = true;
+                        if(_langContext.get(_depth + 1).result.isEmpty()) {
+                            isTrue = false;
+                        }
                         for (ClassEntity ce2 : _langContext.get(_depth + 1).result) {
                             switch (ctx.NAME().toLowerCase()) {
                                 case "import":
-                                    if (ce.getImportRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                    if (ce.getImportRelated(ce2.getFQN()) == null)
                                     {
                                         isTrue = false;
                                     }
                                     break;
-                                case "extend":
-                                    if (ce.getExtendsRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                case "extends":
+                                    if (ce.getExtendsRelated(ce2.getFQN()) == null)
                                     {
                                         isTrue = false;
                                     }
                                     break;
                                 case "implements":
-                                    if (ce.getImplementsRelated(ce2.getFQN()) == null) //import extend implement name fqn
+                                    if (ce.getImplementsRelated(ce2.getFQN()) == null)
                                     {
                                         isTrue = false;
                                     }
                                     break;
                                 case "name":
-                                    if (ce.getName().compareTo(ce2.getName()) != 0) //import extend implement name fqn
+                                    if (ce.getName().compareTo(ce2.getName()) != 0)
                                     {
                                         isTrue = false;
                                     }
                                     break;
                                 case "fqn":
-                                    if (ce.getName().compareTo(ce2.getFQN()) != 0) //import extend implement name fqn
+                                    if (ce.getName().compareTo(ce2.getFQN()) != 0)
                                     {
                                         isTrue = false;
                                     }
@@ -781,14 +784,16 @@ public class Interpret {
             else    // with alias
             {                    
                 // <editor-fold defaultstate="collapsed" desc=" Alias ">
-                String alias = ctx.ALIAS();
-                if (_langContext.get(_depth).mapAS.containsKey(alias)) {
+                String alias = ctx.ALIAS();                
                     if (ctx.OPERATORS() == Operators.IN) {
                         boolean found = false;
                         for (int i = _depth; i >= 0; i--) {
                             if (_langContext.get(i).mapAS.containsKey(alias)) {
                                 for (ClassEntity ce : _langContext.get(i).mapAS.get(alias)) {
                                     boolean isTrue = true;
+                                    if(_langContext.get(_depth + 1).result.isEmpty()) {
+                                        isTrue = false;
+                                    }
                                     for (ClassEntity ce2 : _langContext.get(_depth + 1).result) {
                                         switch (ctx.NAME().toLowerCase()) {
                                             case "import":
@@ -797,7 +802,7 @@ public class Interpret {
                                                     isTrue = false;
                                                 }
                                                 break;
-                                            case "extend":
+                                            case "extends":
                                                 if (ce.getExtendsRelated(ce2.getFQN()) == null) //import extend implement name fqn
                                                 {
                                                     isTrue = false;
@@ -831,8 +836,9 @@ public class Interpret {
                                         tmp.add(ce);
                                     }
                                 }
-                                found = true;
-                                break;
+                                _langContext.get(i).mapAS.get(alias).clear();
+                                _langContext.get(i).mapAS.get(alias).addAll(tmp);
+                                return;                                
                             }
                         }
                         if (!found) {
@@ -845,8 +851,6 @@ public class Interpret {
                         _errMsg.add(new ErrorMessage("Nepovolený operátor: " + ctx.OPERATORS(), _error));
                         return;
                     }
-                }
-
 // </editor-fold>
             }
         }
@@ -856,15 +860,15 @@ public class Interpret {
 
             boolean isEmpty = _langContext.get(_depth + 1).result.isEmpty();            
             if (ctx.EXIST()){
-                if (!isEmpty) {
-                        tmp = _langContext.get(_depth).result;
+                if (!isEmpty) {                    
+                    tmp = _langContext.get(_depth).result;
                 }
             }
             else if (ctx.NOT_EXIST()) {
                 if (isEmpty) {
                     tmp = _langContext.get(_depth).result;
                 }
-            }                            
+            }
             // </editor-fold>
         }       
         else //: (!)? alias? NAME
@@ -1163,10 +1167,11 @@ public class Interpret {
                             default:
                                 _error = true;
                                 _errMsg.add(new ErrorMessage("Neoèekávyný vstup: " + ctx.NAME(), _error));
-                                return;
+                                break;
                         }
-                        found = true;
-                        break;
+                       _langContext.get(i).mapAS.get(alias).clear();
+                       _langContext.get(i).mapAS.get(alias).addAll(tmp);                       
+                        return;
                     }
                 }
                 if (!found) {
@@ -1178,6 +1183,7 @@ public class Interpret {
 // </editor-fold>
             }
         }
+        
         _langContext.get(_depth).result = tmp;
     }
     
@@ -1263,8 +1269,8 @@ public class Interpret {
     // <editor-fold defaultstate="collapsed" desc=" ParamName ">    
     public void exitParamName(ParamNameContext ctx) {
         if (ctx.InnerSelect()) {
-            _langContext.get(_depth).selectListInner.addAll(_langContext.get(_depth + 1).result);
-        }
+            _langContext.get(_depth).selectListInner.addAll(_langContext.get(_depth + 1).result);            
+        }        
         _langContext.get(_depth).selectListCtx.add(ctx);        
     }
     
@@ -1798,8 +1804,11 @@ public class Interpret {
         }
     }
         
-    public void enterSelectStatment(SelectStatmentContext ctx) {
-        _langContext.add(new LangContext());
+    public void enterSelectStatment(SelectStatmentContext ctx) {        
+        if(_langContext.size() > 0 && _langContext.size() > _depth) {         
+            _langContext.remove(_depth);
+        }         
+        _langContext.add(new LangContext());        
     }
 
     private List<ClassEntity> callInterface(Iterable<ClassEntity> inClassRelated, MethodEntity inMethodRelated) {
@@ -1846,7 +1855,6 @@ public class Interpret {
     
     public class LangContext {
 
-        private List<ErrorMessage> errorMessage;
         private List<ClassEntity> result;        
         private List<ParamNameContext> selectListCtx;
         private List<ClassEntity> selectListInner;
@@ -1856,7 +1864,6 @@ public class Interpret {
         Map<String, List<ClassEntity>> mapAS;
         
         LangContext() {
-            errorMessage = new ArrayList();
             result = new ArrayList();    
             selectListCtx = new ArrayList();
             selectListInner = new ArrayList();

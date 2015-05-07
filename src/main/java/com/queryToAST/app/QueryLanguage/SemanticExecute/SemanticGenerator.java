@@ -65,7 +65,7 @@ public class SemanticGenerator extends queryBaseListener{
                 method.Description(ctx.method().STRING() != null ? ctx.method().STRING().get(0).getText().replaceAll("[' ]", "") : null );
             }
             else {
-                for(int i =0; i < ctx.method().getChildCount() ; i++) {
+                for(int i =0; i < ctx.method().NAME().size() ; i++) {
                     method.Arg(
                             ctx.method().NAME(i).getText(),
                             ctx.method().STRING(i).getText().replace("'", "")
@@ -296,6 +296,24 @@ public class SemanticGenerator extends queryBaseListener{
         if (ctx.NAME() != null) {
             switch(ctx.NAME().getText().toLowerCase()) {
                 case "import":
+                    break;
+                case "interface":
+                    break;
+                case "class":
+                    break;
+                case "annotation":
+                    break;
+                case "enum":
+                    break;
+                case "public":
+                    break;
+                case "protected":
+                    break;
+                case "private":
+                    break;
+                case "final":
+                    break;
+                case "inner":
                     break;
                 case "extends":
                     break;

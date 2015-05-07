@@ -9,6 +9,7 @@ import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import com.queryToAST.app.QueryLanguage.SemanticExecute.execute;
 import java.io.IOException;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -36,13 +37,9 @@ public class QueryJUnitTest {
     }
     
     @Before
-    public void setUp() {
-        String internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
-        try {
-            this.exec = new execute(internalName);
-        } catch (IOException ex) {
-            Logger.getLogger(QueryJUnitTest.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    public void setUp() throws IOException {        
+        String internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\Java-AST-query-language\\JavaTestQueryToAST.jar";                
+        this.exec = new execute(internalName);        
     }
     
     @After
@@ -55,31 +52,31 @@ public class QueryJUnitTest {
     @Test
     public void AllClass() {
         List<ClassEntity> result = query("select * from *");        
-        assertEquals(42, result.size());        
+        assertEquals(44, result.size());        
     }
     
     @Test
     public void Extends() {
         List<ClassEntity> result = query("select extends from *");
-        assertEquals(3, result.size());        
+        assertEquals(5, result.size());        
     }
     
     @Test
     public void Import() {
         List<ClassEntity> result = query("select import from *");
-        assertEquals(51, result.size());        
+        assertEquals(60, result.size());        
     }
     
     @Test
     public void Implements() {
         List<ClassEntity> result = query("select implements from *");
-        assertEquals(9, result.size());        
+        assertEquals(10, result.size());        
     }
     
     @Test
     public void Calls() {
         List<ClassEntity> result = query("select call[*] from *");
-        assertEquals(28, result.size());        
+        assertEquals(29, result.size());        
     }
     
     @Test

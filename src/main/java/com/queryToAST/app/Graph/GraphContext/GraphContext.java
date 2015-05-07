@@ -97,7 +97,12 @@ public class GraphContext {
             if(ei.getFullName().compareTo("java.lang.annotation.Annotation")==0)
                 break;
             setImport(ei.getFullName());
-            classEntity.addImplementsdRelated(getClass(ei.getFullName()));
+            if(metadata.isInterface()) {
+                classEntity.addExtendsRelated(getClass(ei.getFullName()));
+            }
+            else {
+                classEntity.addImplementsdRelated(getClass(ei.getFullName()));
+            }
         }
         
         if(metadata.hasAnnotations()){

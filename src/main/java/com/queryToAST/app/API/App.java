@@ -5,8 +5,6 @@ import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Hello world!
@@ -35,7 +33,8 @@ public class App
         
         if(internalName.compareTo("") == 0)
         {
-            internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
+            //C:\Users\Niriel\Documents\NetBeansProjects\Java-AST-query-language\JavaTestQueryToAST.jar
+            //internalName = "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\JavaTestQueryToAST\\dist\\JavaTestQueryToAST.jar";
             //internalName= "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\Java-AST-query-language\\target\\queryToAST-app-1.0-SNAPSHOT.jar";
         }
         
