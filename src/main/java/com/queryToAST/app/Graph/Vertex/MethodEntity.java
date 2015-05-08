@@ -27,6 +27,9 @@ public interface MethodEntity extends BaseEntity{
     @GremlinGroovy("it.as('x').out('annotatedRelated').except('x').has('name',name)")
     public AnnotatedEntity getAnnotatedRelated(@GremlinParam("name") String name);
     
+    @GremlinGroovy("it.as('x').out('methParaRelated').except('x').has('index',index)")
+    public MethParaEntity getMethParaRelated(@GremlinParam("index") int index);
+    
     @Property("countPara")
     public void setCountPara(int count);
     @Property("countPara")

@@ -84,7 +84,7 @@ public class Interpret {
         if (_error) {
             return;
         }
-                       
+        
         AnnotatedStatmentContext as = ctx.getAsctx();
         List<ClassEntity> tmp = new ArrayList();
         List<ClassEntity> alTmp = null;
@@ -111,23 +111,564 @@ public class Interpret {
         // </editor-fold>                                                
         
         String name = as.getAT_NAME();
-        String strTMP = null;
-        String paramsTMP = null;
-        String[] paramTMP = null;
-        String method = null;
         
-        if (ctx.getMethod() != null) {
-            //<editor-fold defaultstate="collapsed" desc=" Dodelat ">
-//            strTMP = ctx.getMethod().Description();
-//            paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");            
-//            
-//            if (paramsTMP.compareTo("") != 0) {
-//                paramTMP = paramsTMP.split(",");
-//            }
-//            method = strTMP.replaceFirst("\\(.*", "");
-            _error = true;
-            _errMsg.add(new ErrorMessage("Anotace metod ještì nejsou plnì implementovány.", _error));
-        // </editor-fold>
+        if (ctx.getMethod() != null) {            
+            // <editor-fold defaultstate="collapsed" desc=" Method ">
+            if (ctx.getMethod().getArg() != null) {
+                // <editor-fold defaultstate="collapsed" desc=" Arg ">
+                for (ClassEntity ce : alTmp) {
+                    for (MethodEntity me : ce.getMethodRelated()) {
+                        // <editor-fold defaultstate="collapsed" desc=" arg ">
+                        boolean isTrue = true;
+                        for (String key : ctx.getMethod().getArg().keySet()) {                            
+                            switch (key.toLowerCase()) {
+                                case "arg":
+                                    String cmp = me.getBriefDescription().replaceFirst(".*\\(", "");
+                                    cmp = cmp.replaceFirst("\\).*", "");
+                                    if (ctx.getMethod().getArg().get(key).compareTo(cmp) != 0) {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                case "name":                                    
+                                    if (ctx.getMethod().getArg().get(key).compareTo(me.getName()) != 0) {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                default:
+                                    isTrue = false;
+                                    break;
+                            }
+                        }
+                        if (!isTrue) {
+                            continue;
+                        }
+
+// </editor-fold>                                                                        
+                        
+                        // <editor-fold defaultstate="collapsed" desc=" Annotated ">
+                       boolean isAE = true;
+                        boolean isAnnotated = true;
+                        AnnParaEntity ann = null;
+                        AnnotatedEntity ar = null;
+
+                        if(ctx.getIndex() != null){
+                            if(ctx.getIndex().isSTAR()) {                                
+                                for(MethParaEntity mepa:me.getMethParaRelated()) {
+                                    ar = mepa.getAnnotatedRelated(name);                                    
+                                    // <editor-fold defaultstate="collapsed" desc=" Annotated STAR ">
+                                    if (ar != null) {//@NAME                                        
+                                        for (int i = 0; i < as.getApctx().size(); i++) {
+                                            AnnotatedParamsContext apc = as.getApctx().get(i);
+                                            if (apc.getName() != null) {
+                                                String ParaName = apc.getName();
+                                                if (apc.getIndex() != null) { //@NAME.NAME INDEX
+                                                    if (isAE) {
+                                                        ann = ar.getAnnParaRelated(ParaName);                                                        
+                                                        if (ann != null) {
+                                                            ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                            if (ann == null) {
+                                                                isAnnotated = false;
+                                                                break;
+                                                            }
+                                                        } else {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                        isAE = false;
+                                                    } else {
+                                                        ann = ann.getAnnParaRelated(ParaName);
+                                                        if (ann != null) {
+                                                            ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                            if (ann == null) {
+                                                                isAnnotated = false;
+                                                                break;
+                                                            }                                                            
+                                                        } else {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                    }                                                    
+                                                } else { //@NAME.NAME
+                                                    if (isAE) {
+                                                        ann = ar.getAnnParaRelated(ParaName);
+                                                        if (ann == null) {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                        isAE = false;
+                                                    } else {
+                                                        ann = ann.getAnnParaRelated(ParaName);
+                                                        if (ann == null) {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                    }                                                    
+                                                }
+                                            } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
+                                                String ATname = apc.getAT_NAME();
+                                                if (ATname.compareTo(ann.getName()) == 0) {
+                                                    
+                                                } else {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    } else {                                        
+                                        continue;
+                                    }
+                                    
+                                    if (isAnnotated) {                                        
+                                        anpTmp.add(ann);
+                                        tmp.add(ce);
+                                    }
+
+// </editor-fold>                                    
+                                }
+                                continue;
+                            }
+                            else {
+                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());                                
+                                if(methParaRelated != null) {
+                                    ar = methParaRelated.getAnnotatedRelated(name);
+                                }
+                            }
+                        }
+                        else {
+                            ar = me.getAnnotatedRelated(name);
+                        }
+                        
+                        if (ar != null) {//@NAME
+                            for (int i = 0; i < as.getApctx().size(); i++) {
+                                AnnotatedParamsContext apc = as.getApctx().get(i);
+                                if (apc.getName() != null) {
+                                    String ParaName = apc.getName();
+                                    if (apc.getIndex() != null) { //@NAME.NAME INDEX
+                                        if (isAE) {
+                                            ann = ar.getAnnParaRelated(ParaName);                                            
+                                            if (ann != null) {
+                                                ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                if (ann == null) {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }
+                                            } else {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                            isAE = false;
+                                        } else {
+                                            ann = ann.getAnnParaRelated(ParaName);
+                                            if (ann != null) {
+                                                ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                if (ann == null) {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }                                                
+                                            } else {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }                                        
+                                    } else { //@NAME.NAME
+                                        if (isAE) {
+                                            ann = ar.getAnnParaRelated(ParaName);
+                                            if (ann == null) {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                            isAE = false;
+                                        } else {
+                                            ann = ann.getAnnParaRelated(ParaName);
+                                            if (ann == null) {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }                                        
+                                    }
+                                } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
+                                    String ATname = apc.getAT_NAME();
+                                    if (ATname.compareTo(ann.getName()) == 0) {
+                                        
+                                    } else {
+                                        isAnnotated = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {                            
+                            continue;
+                        }
+                        
+                        if (isAnnotated) {                            
+                            anpTmp.add(ann);
+                            tmp.add(ce);
+                        }
+// </editor-fold>
+                    }
+                }
+            } // </editor-fold>
+            else if (ctx.getMethod().STAR()) {
+                // <editor-fold defaultstate="collapsed" desc=" STAR ">                
+                for (ClassEntity ce : alTmp) {
+                    for (MethodEntity me : ce.getMethodRelated()) {
+                        
+                        // <editor-fold defaultstate="collapsed" desc=" Annotated ">
+                        boolean isAE = true;
+                        boolean isAnnotated = true;
+                        AnnParaEntity ann = null;
+                        AnnotatedEntity ar = null;
+
+                        if(ctx.getIndex() != null){
+                            if(ctx.getIndex().isSTAR()) {                                
+                                for(MethParaEntity mepa:me.getMethParaRelated()) {
+                                    ar = mepa.getAnnotatedRelated(name);                                    
+                                    // <editor-fold defaultstate="collapsed" desc=" Annotated STAR ">
+                                    if (ar != null) {//@NAME                                        
+                                        for (int i = 0; i < as.getApctx().size(); i++) {
+                                            AnnotatedParamsContext apc = as.getApctx().get(i);
+                                            if (apc.getName() != null) {
+                                                String ParaName = apc.getName();
+                                                if (apc.getIndex() != null) { //@NAME.NAME INDEX
+                                                    if (isAE) {
+                                                        ann = ar.getAnnParaRelated(ParaName);                                                        
+                                                        if (ann != null) {
+                                                            ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                            if (ann == null) {
+                                                                isAnnotated = false;
+                                                                break;
+                                                            }
+                                                        } else {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                        isAE = false;
+                                                    } else {
+                                                        ann = ann.getAnnParaRelated(ParaName);
+                                                        if (ann != null) {
+                                                            ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                            if (ann == null) {
+                                                                isAnnotated = false;
+                                                                break;
+                                                            }                                                            
+                                                        } else {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                    }                                                    
+                                                } else { //@NAME.NAME
+                                                    if (isAE) {
+                                                        ann = ar.getAnnParaRelated(ParaName);
+                                                        if (ann == null) {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                        isAE = false;
+                                                    } else {
+                                                        ann = ann.getAnnParaRelated(ParaName);
+                                                        if (ann == null) {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                    }                                                    
+                                                }
+                                            } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
+                                                String ATname = apc.getAT_NAME();
+                                                if (ATname.compareTo(ann.getName()) == 0) {
+                                                    
+                                                } else {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    } else {                                        
+                                        continue;
+                                    }
+                                    
+                                    if (isAnnotated) {                                        
+                                        anpTmp.add(ann);
+                                        tmp.add(ce);
+                                    }
+
+// </editor-fold>                                    
+                                }
+                                continue;
+                            }
+                            else {
+                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());                                
+                                if(methParaRelated != null) {
+                                    ar = methParaRelated.getAnnotatedRelated(name);
+                                }
+                            }
+                        }
+                        else {
+                            ar = me.getAnnotatedRelated(name);
+                        }
+
+                        if (ar != null) {//@NAME
+                            for (int i = 0; i < as.getApctx().size(); i++) {
+                                AnnotatedParamsContext apc = as.getApctx().get(i);
+                                if (apc.getName() != null) {
+                                    String ParaName = apc.getName();
+                                    if (apc.getIndex() != null) { //@NAME.NAME INDEX
+                                        if (isAE) {
+                                            ann = ar.getAnnParaRelated(ParaName);                                            
+                                            if (ann != null) {
+                                                ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                if (ann == null) {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }
+                                            } else {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                            isAE = false;
+                                        } else {
+                                            ann = ann.getAnnParaRelated(ParaName);
+                                            if (ann != null) {
+                                                ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                if (ann == null) {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }                                                
+                                            } else {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }                                        
+                                    } else { //@NAME.NAME
+                                        if (isAE) {
+                                            ann = ar.getAnnParaRelated(ParaName);
+                                            if (ann == null) {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                            isAE = false;
+                                        } else {
+                                            ann = ann.getAnnParaRelated(ParaName);
+                                            if (ann == null) {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }                                        
+                                    }
+                                } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
+                                    String ATname = apc.getAT_NAME();
+                                    if (ATname.compareTo(ann.getName()) == 0) {
+                                        
+                                    } else {
+                                        isAnnotated = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {                            
+                            continue;
+                        }
+                        
+                        if (isAnnotated) {                            
+                            anpTmp.add(ann);
+                            tmp.add(ce);
+                        }
+                    // </editor-fold>
+                    }
+                }
+                // </editor-fold>
+            } else { //Description
+                // <editor-fold defaultstate="collapsed" desc=" Description ">
+                String strTMP = ctx.getMethod().Description().replaceAll("[' ]", "");
+                String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
+                String[] paramTMP = {};                
+                if (paramsTMP.compareTo("") != 0) {
+                    paramTMP = paramsTMP.split(",");
+                }                
+                String nameMethod = strTMP.replaceFirst("\\(.*", "");                
+                
+                for (ClassEntity ce : alTmp) {
+                    for (MethodEntity me : ce.getMethodRelated(nameMethod)) {                        
+                        // <editor-fold defaultstate="collapsed" desc=" Description ">
+                        if (me.getCountPara() != paramTMP.length) {
+                            continue;
+                        }
+                        boolean isTrueMethod = true;
+                        for (MethParaEntity mpr : me.getMethParaRelated()) {
+                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                
+                                isTrueMethod = false;
+                            }
+                        }
+                        if (!isTrueMethod) {
+                            continue;
+                        }
+
+// </editor-fold>
+
+                        // <editor-fold defaultstate="collapsed" desc=" Annotated ">
+                        boolean isAE = true;
+                        boolean isAnnotated = true;
+                        AnnParaEntity ann = null;
+                        AnnotatedEntity ar = null;
+
+                        if(ctx.getIndex() != null){
+                            if(ctx.getIndex().isSTAR()) {                                
+                                for(MethParaEntity mepa:me.getMethParaRelated()) {
+                                    ar = mepa.getAnnotatedRelated(name);                                    
+                                    // <editor-fold defaultstate="collapsed" desc=" Annotated STAR ">
+                                    if (ar != null) {//@NAME                                        
+                                        for (int i = 0; i < as.getApctx().size(); i++) {
+                                            AnnotatedParamsContext apc = as.getApctx().get(i);
+                                            if (apc.getName() != null) {
+                                                String ParaName = apc.getName();
+                                                if (apc.getIndex() != null) { //@NAME.NAME INDEX
+                                                    if (isAE) {
+                                                        ann = ar.getAnnParaRelated(ParaName);                                                        
+                                                        if (ann != null) {
+                                                            ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                            if (ann == null) {
+                                                                isAnnotated = false;
+                                                                break;
+                                                            }
+                                                        } else {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                        isAE = false;
+                                                    } else {
+                                                        ann = ann.getAnnParaRelated(ParaName);
+                                                        if (ann != null) {
+                                                            ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                            if (ann == null) {
+                                                                isAnnotated = false;
+                                                                break;
+                                                            }                                                            
+                                                        } else {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                    }                                                    
+                                                } else { //@NAME.NAME
+                                                    if (isAE) {
+                                                        ann = ar.getAnnParaRelated(ParaName);
+                                                        if (ann == null) {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                        isAE = false;
+                                                    } else {
+                                                        ann = ann.getAnnParaRelated(ParaName);
+                                                        if (ann == null) {
+                                                            isAnnotated = false;
+                                                            break;
+                                                        }
+                                                    }                                                    
+                                                }
+                                            } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
+                                                String ATname = apc.getAT_NAME();
+                                                if (ATname.compareTo(ann.getName()) == 0) {
+                                                    
+                                                } else {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    } else {                                        
+                                        continue;
+                                    }
+                                    
+                                    if (isAnnotated) {                                        
+                                        anpTmp.add(ann);
+                                        tmp.add(ce);
+                                    }
+
+// </editor-fold>                                    
+                                }
+                                continue;
+                            }
+                            else {
+                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());                                
+                                if(methParaRelated != null) {
+                                    ar = methParaRelated.getAnnotatedRelated(name);
+                                }
+                            }
+                        }
+                        else {
+                            ar = me.getAnnotatedRelated(name);
+                        }
+                        
+                        if (ar != null) {//@NAME
+                            for (int i = 0; i < as.getApctx().size(); i++) {
+                                AnnotatedParamsContext apc = as.getApctx().get(i);
+                                if (apc.getName() != null) {
+                                    String ParaName = apc.getName();
+                                    if (apc.getIndex() != null) { //@NAME.NAME INDEX
+                                        if (isAE) {
+                                            ann = ar.getAnnParaRelated(ParaName);                                            
+                                            if (ann != null) {
+                                                ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                if (ann == null) {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }
+                                            } else {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                            isAE = false;
+                                        } else {
+                                            ann = ann.getAnnParaRelated(ParaName);
+                                            if (ann != null) {
+                                                ann = ann.getIndexRelated(apc.getIndex().getINDEX());
+                                                if (ann == null) {
+                                                    isAnnotated = false;
+                                                    break;
+                                                }                                                
+                                            } else {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }                                        
+                                    } else { //@NAME.NAME
+                                        if (isAE) {
+                                            ann = ar.getAnnParaRelated(ParaName);
+                                            if (ann == null) {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                            isAE = false;
+                                        } else {
+                                            ann = ann.getAnnParaRelated(ParaName);
+                                            if (ann == null) {
+                                                isAnnotated = false;
+                                                break;
+                                            }
+                                        }                                        
+                                    }
+                                } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
+                                    String ATname = apc.getAT_NAME();
+                                    if (ATname.compareTo(ann.getName()) == 0) {
+                                        
+                                    } else {
+                                        isAnnotated = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        } else {                            
+                            continue;
+                        }
+                        
+                        if (isAnnotated) {                            
+                            anpTmp.add(ann);
+                            tmp.add(ce);
+                        }
+// </editor-fold>
+                    }
+                }                
+            }
+            // </editor-fold>
+            // </editor-fold>
         }
         else {
             // <editor-fold defaultstate="collapsed" desc=" Class Annotated ">
@@ -696,7 +1237,80 @@ public class Interpret {
             return; //vyøízeno v exitAnnotated;
         }
         else if (ctx.getMethod() != null) {
-            //dodelat nebo vzit z annotated
+            // <editor-fold defaultstate="collapsed" desc=" Method ">
+            if (ctx.getMethod().getArg() != null) {
+                // <editor-fold defaultstate="collapsed" desc=" Arg ">
+                for (ClassEntity ce : alTmp) {
+                    for (MethodEntity me : ce.getMethodRelated()) {
+                        boolean isTrue = true;
+                        for (String key : ctx.getMethod().getArg().keySet()) {                            
+                            switch (key.toLowerCase()) {
+                                case "arg":
+                                    String cmp = me.getBriefDescription().replaceFirst(".*\\(", "");
+                                    cmp = cmp.replaceFirst("\\).*", "");
+                                    if (ctx.getMethod().getArg().get(key).compareTo(cmp) != 0) {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                case "name":                                    
+                                    if (ctx.getMethod().getArg().get(key).compareTo(me.getName()) != 0) {
+                                        isTrue = false;
+                                    }
+                                    break;
+                                default:
+                                    isTrue = false;
+                                    break;
+                            }
+                        }
+                        if (!isTrue) {
+                            continue;
+                        }
+                        tmp.add(ce);
+                        break;
+                    }
+                }
+            } // </editor-fold>
+            else if (ctx.getMethod().STAR()) {
+                // <editor-fold defaultstate="collapsed" desc=" STAR ">                
+                for (ClassEntity ce : alTmp) {
+                    for (MethodEntity me : ce.getMethodRelated()) {                        
+                        tmp.add(ce);
+                    }
+                }
+// </editor-fold>
+            } else { //Description
+                // <editor-fold defaultstate="collapsed" desc=" Description ">
+                String strTMP = ctx.getMethod().Description().replaceAll("[' ]", "");
+                String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
+                String[] paramTMP = {};
+                
+                if (paramsTMP.compareTo("") != 0) {
+                    paramTMP = paramsTMP.split(",");
+                }
+                
+                String name = strTMP.replaceFirst("\\(.*", "");                
+                
+                for (ClassEntity ce : alTmp) {
+                    for (MethodEntity me : ce.getMethodRelated(name)) {                        
+                        if (me.getCountPara() != paramTMP.length) {
+                            continue;
+                        }
+                        boolean isTrueMethod = true;
+                        for (MethParaEntity mpr : me.getMethParaRelated()) {
+                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                
+                                isTrueMethod = false;
+                            }
+                        }
+                        if (isTrueMethod) {
+                            tmp.add(ce);
+                            break;
+                        }
+                    }
+                }                
+            }
+            // </editor-fold>
+
+// </editor-fold>
         }
          alTmp.clear();
          alTmp.addAll(tmp);         

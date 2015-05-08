@@ -62,7 +62,9 @@ public class SemanticGenerator extends queryBaseListener{
             MethodContext method = new MethodContext();
             if(ctx.method().getChildCount()==1) {
                 method.STAR(ctx.method().STAR() != null);
-                method.Description(ctx.method().STRING() != null ? ctx.method().STRING().get(0).getText().replaceAll("[' ]", "") : null );
+                if(ctx.method().STAR() == null) {
+                    method.Description(ctx.method().STRING() != null ? ctx.method().STRING().get(0).getText().replaceAll("[' ]", "") : null );
+                }
             }
             else {
                 for(int i =0; i < ctx.method().NAME().size() ; i++) {
@@ -204,7 +206,9 @@ public class SemanticGenerator extends queryBaseListener{
             MethodContext method = new MethodContext();
             if(ctx.method().getChildCount()==1) {
                 method.STAR(ctx.method().STAR() != null);
-                method.Description(ctx.method().STRING() != null ? ctx.method().STRING().get(0).getText().replaceAll("[' ]", "") : null );
+                if(ctx.method().STAR()== null) {
+                    method.Description(ctx.method().STRING() != null ? ctx.method().STRING().get(0).getText().replaceAll("[' ]", "") : null );
+                }
             }
             else {
                 if(ctx.method().NAME().size() > 2) {
