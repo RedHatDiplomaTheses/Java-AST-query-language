@@ -2,7 +2,6 @@ package com.queryToAST.app.API;
 
 import com.queryToAST.app.QueryLanguage.SemanticExecute.execute;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
-import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -12,8 +11,7 @@ import java.util.Scanner;
  */
 public class App 
 {
-    public static void main( String[] args ) throws Exception
-    {
+    public static void main( String[] args ) {
         if(args.length != 1) {           
             help();
         }
@@ -26,7 +24,7 @@ public class App
         console();
     }
     
-    public static void console() throws IOException {
+    public static void console() {
         System.out.print("Zadejte cestu k jar souboru:");
         Scanner in = new Scanner(System.in);
         String internalName = in.nextLine();
@@ -39,6 +37,7 @@ public class App
         }
         
         execute exec = new execute(internalName);
+        
         if(exec.isError()) {
             return;
         }

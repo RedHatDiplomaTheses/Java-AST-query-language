@@ -26,7 +26,8 @@ public class execute {
     private boolean log=false;
     private boolean load=false;
     private boolean error = false;
-    public execute(String path) throws IOException {
+    
+    public execute(String path) {
         if(load)
         System.out.println("Inicializace grafu.");
         _graphContext = new GraphContext();

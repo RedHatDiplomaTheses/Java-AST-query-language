@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 
@@ -31,7 +33,7 @@ public class JarMetadata {
     private boolean load = false;
     private boolean error = false;
     
-    public JarMetadata(String _internalName, GraphContext graphContext) throws IOException {        
+    public JarMetadata(String _internalName, GraphContext graphContext) {        
         _graphContext = graphContext;
         _settings = new Setting(_internalName,null);
         _settings.setMetadata(true);
@@ -44,7 +46,7 @@ public class JarMetadata {
      * @return
      * @throws IOException
      */
-    private void execute() throws IOException {        
+    private void execute() {        
         DecompilerSettings settings = DecompilerSettings.javaDefaults();
         settings.setLanguage(Languages.bytecode()); //metadata
         //settings.setLanguage(Languages.java()); // plna dekompilace a AST
@@ -54,7 +56,14 @@ public class JarMetadata {
             error = true;
             return;
         }
-        final JarFile jar = new JarFile(jarFile);
+        JarFile jar = null;
+        try {
+            jar = new JarFile(jarFile);
+        } catch (IOException ex) {
+            System.out.println(ex.toString());
+            error = true;
+            return;
+        }
         final Enumeration<JarEntry> entries = jar.entries();
         settings.setShowSyntheticMembers(false);
         settings.setTypeLoader(new JarTypeLoader(jar));
