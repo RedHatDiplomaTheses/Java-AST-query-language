@@ -959,16 +959,17 @@ public class Interpret {
                                 String cmpValue;
                                 switch (cmpNAME.toLowerCase()){
                                     case "name":
-                                        cmpValue =sec.getName();
+                                        cmpValue = sec.getName();
                                         break;
                                     case "fqn":
-                                        cmpValue =sec.getFQN();
+                                        cmpValue = sec.getFQN();
                                         break;
                                     default:
                                         _error = true;
                                         _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.getNAME(), _error));
                                         return;
-                                }
+                                }                                
+                                
                                 if (ce.getName().compareTo(cmpValue) == 0) {
                                     if (ctx.getOPERATORS() == Operators.EQUAL) {
                                         tmp.add(ce);

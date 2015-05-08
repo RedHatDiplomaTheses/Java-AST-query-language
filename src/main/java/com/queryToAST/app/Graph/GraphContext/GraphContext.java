@@ -567,10 +567,9 @@ public class GraphContext {
     }
 
     private void setEnumAnnotationElement(EnumAnnotationElement enumAnnotationElement,AnnParaEntity APE) {
-        APE.setValue(enumAnnotationElement.getEnumConstantName());
-        APE.setType("enum");
-        APE.setFQN(enumAnnotationElement.getEnumType().getFullName());
-        APE.setDescription(enumAnnotationElement.getEnumType().getFullName() + "." + enumAnnotationElement.getEnumType().getFullName());
+        
+        APE.setValue(enumAnnotationElement.getEnumConstantName());                                
+        APE.setDescription(enumAnnotationElement.getEnumType().getFullName());
         setImport(enumAnnotationElement.getEnumType().getFullName());
         if(log)
         System.out.println(
@@ -730,6 +729,7 @@ public class GraphContext {
             }
         }
         ClassEntity ce = framed.frame(graph.addVertex(null), ClassEntity.class);
+        ce.setName("Unknown");
         ce.setFQN(fullName);
         ce.setNotDecompile(true);
         return ce;
