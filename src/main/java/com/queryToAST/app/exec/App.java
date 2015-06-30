@@ -1,6 +1,6 @@
-package com.queryToAST.app.API;
+package com.queryToAST.app.exec;
 
-import com.queryToAST.app.QueryLanguage.SemanticExecute.execute;
+import com.queryToAST.app.QueryLanguage.SemanticExecute.QueryProcessor;
 import com.queryToAST.app.Graph.Vertex.ClassEntity;
 import java.util.List;
 import java.util.Scanner;
@@ -36,7 +36,7 @@ public class App
             //internalName= "C:\\Users\\Niriel\\Documents\\NetBeansProjects\\Java-AST-query-language\\target\\queryToAST-app-1.0-SNAPSHOT.jar";
         }
         
-        execute exec = new execute(internalName);
+        QueryProcessor exec = new QueryProcessor(internalName);
         
         if(exec.isError()) {
             return;

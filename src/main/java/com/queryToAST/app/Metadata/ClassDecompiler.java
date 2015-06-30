@@ -1,11 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.queryToAST.app.Metadata;
 
-import com.queryToAST.app.Core.ProcessingData;
-import com.queryToAST.app.API.Setting;
+import com.queryToAST.app.util.AlternativeOutput;
+import com.queryToAST.app.exec.Setting;
 import com.strobel.assembler.InputTypeLoader;
 import com.strobel.assembler.metadata.DeobfuscationUtilities;
 import com.strobel.assembler.metadata.IMetadataResolver;
@@ -21,47 +17,56 @@ import com.strobel.decompiler.ITextOutput;
 import com.strobel.decompiler.PlainTextOutput;
 import com.strobel.decompiler.languages.java.JavaFormattingOptions;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 /**
  *
  * @author Niriel
+ *
+ * TODO: Separate ClassMetadata from ClassDecompiler!
+ * TODO: Make AlternativeOutput not-base-class.
  */
-public class ClassMetadata extends ProcessingData{   
-    private TypeDefinition _typeDefinition;
+public class ClassDecompiler extends AlternativeOutput {
     private boolean log =false;
-    
-    public ClassMetadata(Setting settings) {
+
+    public ClassDecompiler(Setting settings) {
         super(settings);
-        Build(settings.getSettings());
+        doDecompile(settings.getSettings());
         if(log)
-        System.out.println(_outputVar);
+            System.out.println(_outputVar);
     }
-   
+
+    // TODO: Move to ClassMetadata.
+    private TypeDefinition _typeDefinition;
     public TypeDefinition getMetadata(){
         return _typeDefinition;
     }
-    private void Build(final DecompilerSettings settings){        
-        
-        if(_outputFile == null) {
-            try (final OutputStreamWriter writer = new OutputStreamWriter(_outputVar)) {
-            decompile(_internalName, new PlainTextOutput(writer), settings);            
-            }
-            catch (final IOException e) {
-                System.out.println(e);
-            }
-        }else {
-            try (final FileOutputStream stream = new FileOutputStream(_outputFile);                
-                final OutputStreamWriter writer = new OutputStreamWriter(stream)) {
+
+
+    private void doDecompile(final DecompilerSettings settings){
+
+        try {
+            OutputStream os = _outputFile == null
+                ? _outputVar
+                : new FileOutputStream(_outputFile);
+
+            try(Writer writer = new OutputStreamWriter(os))
+            {
                 decompile(_internalName, new PlainTextOutput(writer), settings);
             }
-            catch (final IOException e) {
+            catch( final Exception e )
+            {
                 System.out.println(e);
             }
         }
+        catch(Exception ex) {
+            System.out.println("Failed processing class: " + ex.getMessage());
+        }
     }
-    
+
+
     public void decompile(final String internalName, final ITextOutput output, final DecompilerSettings settings) {
         VerifyArgument.notNull(internalName, "internalName");
         VerifyArgument.notNull(settings, "settings");
@@ -107,8 +112,9 @@ public class ClassMetadata extends ProcessingData{
 //        ConstantAnnotationElement cone =(ConstantAnnotationElement) ann.getAnnotation().getParameters().iterator().next().getValue();
 //        cone.getConstantValue();
 //        System.out.println(cone.getConstantValue());
-        
+
         _typeDefinition = resolvedType;
         settings.getLanguage().decompileType(resolvedType, output, options);
     }
+
 }

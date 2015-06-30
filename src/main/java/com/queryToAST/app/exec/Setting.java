@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.queryToAST.app.API;
+package com.queryToAST.app.exec;
 
 import com.strobel.decompiler.DecompilerSettings;
 

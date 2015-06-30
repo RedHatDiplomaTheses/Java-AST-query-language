@@ -14,13 +14,13 @@ import com.tinkerpop.frames.annotations.gremlin.GremlinParam;
  *
  * @author Niriel
  */
-public interface AnnParaEntity extends BaseEntity{
+public interface AnnotationAttributeEntity extends BaseEntity{
     
     @GremlinGroovy("it.as('x').out('annParaRelated').except('x').has('index', index)")
-    public AnnParaEntity getIndexRelated(@GremlinParam("index") int index);
+    public AnnotationAttributeEntity getIndexRelated(@GremlinParam("index") int index);
     
     @GremlinGroovy("it.as('x').out('annParaRelated').except('x').has('name', name)")
-    public AnnParaEntity getAnnParaRelated(@GremlinParam("name") String name);
+    public AnnotationAttributeEntity getAnnParaRelated(@GremlinParam("name") String name);
     
     
     @GremlinGroovy("it.as('x').out('annotatedRelated').except('x').has('name', name)")
@@ -47,10 +47,10 @@ public interface AnnParaEntity extends BaseEntity{
     
     //Pole AnnPara
     @Adjacency(label= "annParaRelated",direction=Direction.OUT)
-    public AnnParaEntity addAnnParaRelated (); //Return new Vertex    
+    public AnnotationAttributeEntity addAnnParaRelated (); //Return new Vertex    
     @Adjacency(label= "annParaRelated",direction=Direction.OUT)
-    public AnnParaEntity addAnnParaRelated (AnnParaEntity AnnParaEntity);  //Add an existing Vertex    
+    public AnnotationAttributeEntity addAnnParaRelated (AnnotationAttributeEntity AnnParaEntity);  //Add an existing Vertex    
     @Adjacency(label = "annParaRelated", direction=Direction.OUT)
-    public Iterable<AnnParaEntity> getAnnParaRelated();
+    public Iterable<AnnotationAttributeEntity> getAnnParaRelated();
     
 }

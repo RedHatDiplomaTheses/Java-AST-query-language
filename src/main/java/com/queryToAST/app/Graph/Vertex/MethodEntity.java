@@ -31,7 +31,7 @@ public interface MethodEntity extends BaseEntity{
     public MethParaEntity getMethParaRelated(@GremlinParam("index") int index);
     
     @Property("countPara")
-    public void setCountPara(int count);
+    public void setParamCount(int count);
     @Property("countPara")
     public int getCountPara();
     

@@ -4,8 +4,8 @@
  */
 package com.queryToAST.app.AST;
 
-import com.queryToAST.app.Core.ProcessingData;
-import com.queryToAST.app.API.Setting;
+import com.queryToAST.app.util.AlternativeOutput;
+import com.queryToAST.app.exec.Setting;
 import com.strobel.assembler.InputTypeLoader;
 import com.strobel.assembler.metadata.DeobfuscationUtilities;
 import com.strobel.assembler.metadata.IMetadataResolver;
@@ -33,7 +33,7 @@ import java.io.OutputStreamWriter;
  *
  * @author Niriel
  */
-public class ClassAST extends ProcessingData{
+public class ClassAST extends AlternativeOutput{
     private CompilationUnit _unitAST = null;
     
     public ClassAST(Setting settings){

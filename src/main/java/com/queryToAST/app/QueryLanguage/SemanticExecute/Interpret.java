@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.queryToAST.app.QueryLanguage.SemanticExecute;
 
 import com.google.common.collect.Lists;
@@ -19,13 +14,15 @@ import java.util.TreeMap;
  * @author Niriel
  */
 public class Interpret {
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Property ">
+
+    // TODO: Make final, put to a constructor.
     private GraphContext _graphContext = null;
     private List<LangContext> _langContext = new ArrayList();
     private int _depth = 0;
-    private List<AnnParaEntity> _annotatedRight;
-    private List<AnnParaEntity> _annotatedLeft;
+    private List<AnnotationAttributeEntity> _annotatedRight;
+    private List<AnnotationAttributeEntity> _annotatedLeft;
     private int _index;
     private boolean _indexStar = false;
     private List<MethodEntity> _method = null;
@@ -35,62 +32,62 @@ public class Interpret {
     private boolean _error = false;
     private String _as = null;
     private String _alias = null;
-    private boolean _isRight = false;    
+    private boolean _isRight = false;
 // </editor-fold>
-        
+
     // <editor-fold defaultstate="collapsed" desc=" Get-Set ">
     public void printErr() {
         for (ErrorMessage em : _errMsg) {
             System.out.println(em);
         }
     }
-    
+
     public boolean isError() {
         return _error;
     }
-    
+
     public GraphContext getContext() {
         return _graphContext;
     }
-    
+
     public void setContext(GraphContext context) {
         this._graphContext = context;
-    }    
-    
+    }
+
     public List<ClassEntity> getResult() {
         return _result;
     }
 
 // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" InnerSelect ">    
-    public void exitInnerSelect(InnerSelectContext ctx) {        
+
+    // <editor-fold defaultstate="collapsed" desc=" InnerSelect ">
+    public void exitInnerSelect(InnerSelectContext ctx) {
         _depth--;
     }
-        
+
     public void enterInnerSelect(InnerSelectContext ctx) {
         _depth++;
-    }    
-// </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" AnnotatedParams ">    
-    public void enterAnnotatedParams(AnnotatedParamsContext ctx) {
-        _indexStar = false;        
     }
-// </editor-fold>                
+// </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc=" Annotated ">    
+    // <editor-fold defaultstate="collapsed" desc=" AnnotatedParams ">
+    public void enterAnnotatedParams(AnnotatedParamsContext ctx) {
+        _indexStar = false;
+    }
+// </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Annotated ">
     public void exitAnnotated(AnnotatedContext ctx) {
         if (_error) {
             return;
         }
-        
+
         AnnotatedStatmentContext as = ctx.getAsctx();
         List<ClassEntity> tmp = new ArrayList();
         List<ClassEntity> alTmp = null;
-        List<AnnParaEntity> anpTmp= new ArrayList();
-        
-        // <editor-fold defaultstate="collapsed" desc=" IF alias ">            
+        List<AnnotationAttributeEntity> anpTmp= new ArrayList();
+
+        // <editor-fold defaultstate="collapsed" desc=" IF alias ">
         if (_alias != null) {
             boolean isTrue = false;
             for (int i = _depth; i >= 0; i--) {
@@ -108,11 +105,11 @@ public class Interpret {
         } else {
             alTmp = _langContext.get(_depth).result;
         }
-        // </editor-fold>                                                
-        
+        // </editor-fold>
+
         String name = as.getAT_NAME();
-        
-        if (ctx.getMethod() != null) {            
+
+        if (ctx.getMethod() != null) {
             // <editor-fold defaultstate="collapsed" desc=" Method ">
             if (ctx.getMethod().getArg() != null) {
                 // <editor-fold defaultstate="collapsed" desc=" Arg ">
@@ -120,7 +117,7 @@ public class Interpret {
                     for (MethodEntity me : ce.getMethodRelated()) {
                         // <editor-fold defaultstate="collapsed" desc=" arg ">
                         boolean isTrue = true;
-                        for (String key : ctx.getMethod().getArg().keySet()) {                            
+                        for (String key : ctx.getMethod().getArg().keySet()) {
                             switch (key.toLowerCase()) {
                                 case "arg":
                                     String cmp = me.getBriefDescription().replaceFirst(".*\\(", "");
@@ -129,7 +126,7 @@ public class Interpret {
                                         isTrue = false;
                                     }
                                     break;
-                                case "name":                                    
+                                case "name":
                                     if (ctx.getMethod().getArg().get(key).compareTo(me.getName()) != 0) {
                                         isTrue = false;
                                     }
@@ -143,27 +140,27 @@ public class Interpret {
                             continue;
                         }
 
-// </editor-fold>                                                                        
-                        
+// </editor-fold>
+
                         // <editor-fold defaultstate="collapsed" desc=" Annotated ">
                        boolean isAE = true;
                         boolean isAnnotated = true;
-                        AnnParaEntity ann = null;
+                        AnnotationAttributeEntity ann = null;
                         AnnotatedEntity ar = null;
 
                         if(ctx.getIndex() != null){
-                            if(ctx.getIndex().isSTAR()) {                                
+                            if(ctx.getIndex().isSTAR()) {
                                 for(MethParaEntity mepa:me.getMethParaRelated()) {
-                                    ar = mepa.getAnnotatedRelated(name);                                    
+                                    ar = mepa.getAnnotatedRelated(name);
                                     // <editor-fold defaultstate="collapsed" desc=" Annotated STAR ">
-                                    if (ar != null) {//@NAME                                        
+                                    if (ar != null) {//@NAME
                                         for (int i = 0; i < as.getApctx().size(); i++) {
                                             AnnotatedParamsContext apc = as.getApctx().get(i);
                                             if (apc.getName() != null) {
                                                 String ParaName = apc.getName();
                                                 if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                                     if (isAE) {
-                                                        ann = ar.getAnnParaRelated(ParaName);                                                        
+                                                        ann = ar.getAnnParaRelated(ParaName);
                                                         if (ann != null) {
                                                             ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                                             if (ann == null) {
@@ -182,12 +179,12 @@ public class Interpret {
                                                             if (ann == null) {
                                                                 isAnnotated = false;
                                                                 break;
-                                                            }                                                            
+                                                            }
                                                         } else {
                                                             isAnnotated = false;
                                                             break;
                                                         }
-                                                    }                                                    
+                                                    }
                                                 } else { //@NAME.NAME
                                                     if (isAE) {
                                                         ann = ar.getAnnParaRelated(ParaName);
@@ -202,33 +199,33 @@ public class Interpret {
                                                             isAnnotated = false;
                                                             break;
                                                         }
-                                                    }                                                    
+                                                    }
                                                 }
                                             } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                                                 String ATname = apc.getAT_NAME();
                                                 if (ATname.compareTo(ann.getName()) == 0) {
-                                                    
+
                                                 } else {
                                                     isAnnotated = false;
                                                     break;
                                                 }
                                             }
                                         }
-                                    } else {                                        
+                                    } else {
                                         continue;
                                     }
-                                    
-                                    if (isAnnotated) {                                        
+
+                                    if (isAnnotated) {
                                         anpTmp.add(ann);
                                         tmp.add(ce);
                                     }
 
-// </editor-fold>                                    
+// </editor-fold>
                                 }
                                 continue;
                             }
                             else {
-                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());                                
+                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());
                                 if(methParaRelated != null) {
                                     ar = methParaRelated.getAnnotatedRelated(name);
                                 }
@@ -237,7 +234,7 @@ public class Interpret {
                         else {
                             ar = me.getAnnotatedRelated(name);
                         }
-                        
+
                         if (ar != null) {//@NAME
                             for (int i = 0; i < as.getApctx().size(); i++) {
                                 AnnotatedParamsContext apc = as.getApctx().get(i);
@@ -245,7 +242,7 @@ public class Interpret {
                                     String ParaName = apc.getName();
                                     if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                         if (isAE) {
-                                            ann = ar.getAnnParaRelated(ParaName);                                            
+                                            ann = ar.getAnnParaRelated(ParaName);
                                             if (ann != null) {
                                                 ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                                 if (ann == null) {
@@ -264,12 +261,12 @@ public class Interpret {
                                                 if (ann == null) {
                                                     isAnnotated = false;
                                                     break;
-                                                }                                                
+                                                }
                                             } else {
                                                 isAnnotated = false;
                                                 break;
                                             }
-                                        }                                        
+                                        }
                                     } else { //@NAME.NAME
                                         if (isAE) {
                                             ann = ar.getAnnParaRelated(ParaName);
@@ -284,23 +281,23 @@ public class Interpret {
                                                 isAnnotated = false;
                                                 break;
                                             }
-                                        }                                        
+                                        }
                                     }
                                 } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                                     String ATname = apc.getAT_NAME();
                                     if (ATname.compareTo(ann.getName()) == 0) {
-                                        
+
                                     } else {
                                         isAnnotated = false;
                                         break;
                                     }
                                 }
                             }
-                        } else {                            
+                        } else {
                             continue;
                         }
-                        
-                        if (isAnnotated) {                            
+
+                        if (isAnnotated) {
                             anpTmp.add(ann);
                             tmp.add(ce);
                         }
@@ -309,29 +306,29 @@ public class Interpret {
                 }
             } // </editor-fold>
             else if (ctx.getMethod().STAR()) {
-                // <editor-fold defaultstate="collapsed" desc=" STAR ">                
+                // <editor-fold defaultstate="collapsed" desc=" STAR ">
                 for (ClassEntity ce : alTmp) {
                     for (MethodEntity me : ce.getMethodRelated()) {
-                        
+
                         // <editor-fold defaultstate="collapsed" desc=" Annotated ">
                         boolean isAE = true;
                         boolean isAnnotated = true;
-                        AnnParaEntity ann = null;
+                        AnnotationAttributeEntity ann = null;
                         AnnotatedEntity ar = null;
 
                         if(ctx.getIndex() != null){
-                            if(ctx.getIndex().isSTAR()) {                                
+                            if(ctx.getIndex().isSTAR()) {
                                 for(MethParaEntity mepa:me.getMethParaRelated()) {
-                                    ar = mepa.getAnnotatedRelated(name);                                    
+                                    ar = mepa.getAnnotatedRelated(name);
                                     // <editor-fold defaultstate="collapsed" desc=" Annotated STAR ">
-                                    if (ar != null) {//@NAME                                        
+                                    if (ar != null) {//@NAME
                                         for (int i = 0; i < as.getApctx().size(); i++) {
                                             AnnotatedParamsContext apc = as.getApctx().get(i);
                                             if (apc.getName() != null) {
                                                 String ParaName = apc.getName();
                                                 if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                                     if (isAE) {
-                                                        ann = ar.getAnnParaRelated(ParaName);                                                        
+                                                        ann = ar.getAnnParaRelated(ParaName);
                                                         if (ann != null) {
                                                             ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                                             if (ann == null) {
@@ -350,12 +347,12 @@ public class Interpret {
                                                             if (ann == null) {
                                                                 isAnnotated = false;
                                                                 break;
-                                                            }                                                            
+                                                            }
                                                         } else {
                                                             isAnnotated = false;
                                                             break;
                                                         }
-                                                    }                                                    
+                                                    }
                                                 } else { //@NAME.NAME
                                                     if (isAE) {
                                                         ann = ar.getAnnParaRelated(ParaName);
@@ -370,33 +367,33 @@ public class Interpret {
                                                             isAnnotated = false;
                                                             break;
                                                         }
-                                                    }                                                    
+                                                    }
                                                 }
                                             } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                                                 String ATname = apc.getAT_NAME();
                                                 if (ATname.compareTo(ann.getName()) == 0) {
-                                                    
+
                                                 } else {
                                                     isAnnotated = false;
                                                     break;
                                                 }
                                             }
                                         }
-                                    } else {                                        
+                                    } else {
                                         continue;
                                     }
-                                    
-                                    if (isAnnotated) {                                        
+
+                                    if (isAnnotated) {
                                         anpTmp.add(ann);
                                         tmp.add(ce);
                                     }
 
-// </editor-fold>                                    
+// </editor-fold>
                                 }
                                 continue;
                             }
                             else {
-                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());                                
+                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());
                                 if(methParaRelated != null) {
                                     ar = methParaRelated.getAnnotatedRelated(name);
                                 }
@@ -413,7 +410,7 @@ public class Interpret {
                                     String ParaName = apc.getName();
                                     if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                         if (isAE) {
-                                            ann = ar.getAnnParaRelated(ParaName);                                            
+                                            ann = ar.getAnnParaRelated(ParaName);
                                             if (ann != null) {
                                                 ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                                 if (ann == null) {
@@ -432,12 +429,12 @@ public class Interpret {
                                                 if (ann == null) {
                                                     isAnnotated = false;
                                                     break;
-                                                }                                                
+                                                }
                                             } else {
                                                 isAnnotated = false;
                                                 break;
                                             }
-                                        }                                        
+                                        }
                                     } else { //@NAME.NAME
                                         if (isAE) {
                                             ann = ar.getAnnParaRelated(ParaName);
@@ -452,23 +449,23 @@ public class Interpret {
                                                 isAnnotated = false;
                                                 break;
                                             }
-                                        }                                        
+                                        }
                                     }
                                 } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                                     String ATname = apc.getAT_NAME();
                                     if (ATname.compareTo(ann.getName()) == 0) {
-                                        
+
                                     } else {
                                         isAnnotated = false;
                                         break;
                                     }
                                 }
                             }
-                        } else {                            
+                        } else {
                             continue;
                         }
-                        
-                        if (isAnnotated) {                            
+
+                        if (isAnnotated) {
                             anpTmp.add(ann);
                             tmp.add(ce);
                         }
@@ -480,21 +477,21 @@ public class Interpret {
                 // <editor-fold defaultstate="collapsed" desc=" Description ">
                 String strTMP = ctx.getMethod().Description().replaceAll("[' ]", "");
                 String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
-                String[] paramTMP = {};                
+                String[] paramTMP = {};
                 if (paramsTMP.compareTo("") != 0) {
                     paramTMP = paramsTMP.split(",");
-                }                
-                String nameMethod = strTMP.replaceFirst("\\(.*", "");                
-                
+                }
+                String nameMethod = strTMP.replaceFirst("\\(.*", "");
+
                 for (ClassEntity ce : alTmp) {
-                    for (MethodEntity me : ce.getMethodRelated(nameMethod)) {                        
+                    for (MethodEntity me : ce.getMethodRelated(nameMethod)) {
                         // <editor-fold defaultstate="collapsed" desc=" Description ">
                         if (me.getCountPara() != paramTMP.length) {
                             continue;
                         }
                         boolean isTrueMethod = true;
                         for (MethParaEntity mpr : me.getMethParaRelated()) {
-                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                
+                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {
                                 isTrueMethod = false;
                             }
                         }
@@ -507,22 +504,22 @@ public class Interpret {
                         // <editor-fold defaultstate="collapsed" desc=" Annotated ">
                         boolean isAE = true;
                         boolean isAnnotated = true;
-                        AnnParaEntity ann = null;
+                        AnnotationAttributeEntity ann = null;
                         AnnotatedEntity ar = null;
 
                         if(ctx.getIndex() != null){
-                            if(ctx.getIndex().isSTAR()) {                                
+                            if(ctx.getIndex().isSTAR()) {
                                 for(MethParaEntity mepa:me.getMethParaRelated()) {
-                                    ar = mepa.getAnnotatedRelated(name);                                    
+                                    ar = mepa.getAnnotatedRelated(name);
                                     // <editor-fold defaultstate="collapsed" desc=" Annotated STAR ">
-                                    if (ar != null) {//@NAME                                        
+                                    if (ar != null) {//@NAME
                                         for (int i = 0; i < as.getApctx().size(); i++) {
                                             AnnotatedParamsContext apc = as.getApctx().get(i);
                                             if (apc.getName() != null) {
                                                 String ParaName = apc.getName();
                                                 if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                                     if (isAE) {
-                                                        ann = ar.getAnnParaRelated(ParaName);                                                        
+                                                        ann = ar.getAnnParaRelated(ParaName);
                                                         if (ann != null) {
                                                             ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                                             if (ann == null) {
@@ -541,12 +538,12 @@ public class Interpret {
                                                             if (ann == null) {
                                                                 isAnnotated = false;
                                                                 break;
-                                                            }                                                            
+                                                            }
                                                         } else {
                                                             isAnnotated = false;
                                                             break;
                                                         }
-                                                    }                                                    
+                                                    }
                                                 } else { //@NAME.NAME
                                                     if (isAE) {
                                                         ann = ar.getAnnParaRelated(ParaName);
@@ -561,33 +558,33 @@ public class Interpret {
                                                             isAnnotated = false;
                                                             break;
                                                         }
-                                                    }                                                    
+                                                    }
                                                 }
                                             } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                                                 String ATname = apc.getAT_NAME();
                                                 if (ATname.compareTo(ann.getName()) == 0) {
-                                                    
+
                                                 } else {
                                                     isAnnotated = false;
                                                     break;
                                                 }
                                             }
                                         }
-                                    } else {                                        
+                                    } else {
                                         continue;
                                     }
-                                    
-                                    if (isAnnotated) {                                        
+
+                                    if (isAnnotated) {
                                         anpTmp.add(ann);
                                         tmp.add(ce);
                                     }
 
-// </editor-fold>                                    
+// </editor-fold>
                                 }
                                 continue;
                             }
                             else {
-                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());                                
+                                MethParaEntity methParaRelated = me.getMethParaRelated(ctx.getIndex().getINDEX());
                                 if(methParaRelated != null) {
                                     ar = methParaRelated.getAnnotatedRelated(name);
                                 }
@@ -596,7 +593,7 @@ public class Interpret {
                         else {
                             ar = me.getAnnotatedRelated(name);
                         }
-                        
+
                         if (ar != null) {//@NAME
                             for (int i = 0; i < as.getApctx().size(); i++) {
                                 AnnotatedParamsContext apc = as.getApctx().get(i);
@@ -604,7 +601,7 @@ public class Interpret {
                                     String ParaName = apc.getName();
                                     if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                         if (isAE) {
-                                            ann = ar.getAnnParaRelated(ParaName);                                            
+                                            ann = ar.getAnnParaRelated(ParaName);
                                             if (ann != null) {
                                                 ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                                 if (ann == null) {
@@ -623,12 +620,12 @@ public class Interpret {
                                                 if (ann == null) {
                                                     isAnnotated = false;
                                                     break;
-                                                }                                                
+                                                }
                                             } else {
                                                 isAnnotated = false;
                                                 break;
                                             }
-                                        }                                        
+                                        }
                                     } else { //@NAME.NAME
                                         if (isAE) {
                                             ann = ar.getAnnParaRelated(ParaName);
@@ -643,43 +640,43 @@ public class Interpret {
                                                 isAnnotated = false;
                                                 break;
                                             }
-                                        }                                        
+                                        }
                                     }
                                 } else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                                     String ATname = apc.getAT_NAME();
                                     if (ATname.compareTo(ann.getName()) == 0) {
-                                        
+
                                     } else {
                                         isAnnotated = false;
                                         break;
                                     }
                                 }
                             }
-                        } else {                            
+                        } else {
                             continue;
                         }
-                        
-                        if (isAnnotated) {                            
+
+                        if (isAnnotated) {
                             anpTmp.add(ann);
                             tmp.add(ce);
                         }
 // </editor-fold>
                     }
-                }                
+                }
             }
             // </editor-fold>
             // </editor-fold>
         }
         else {
             // <editor-fold defaultstate="collapsed" desc=" Class Annotated ">
-            for (ClassEntity ce : alTmp) {                
+            for (ClassEntity ce : alTmp) {
                 boolean isAE = true;
                 boolean isAnnotated = true;
-                AnnParaEntity ann = null;
+                AnnotationAttributeEntity ann = null;
                 AnnotatedEntity ar = null;
-                
+
                 ar = ce.getAnnotatedRelated(name);
-                
+
                 if (ar != null) {//@NAME
                     for (int i = 0; i < as.getApctx().size(); i++) {
                         AnnotatedParamsContext apc = as.getApctx().get(i);
@@ -687,7 +684,7 @@ public class Interpret {
                             String ParaName = apc.getName();
                             if (apc.getIndex() != null) { //@NAME.NAME INDEX
                                 if (isAE) {
-                                    ann = ar.getAnnParaRelated(ParaName);                                    
+                                    ann = ar.getAnnParaRelated(ParaName);
                                     if (ann != null) {
                                         ann = ann.getIndexRelated(apc.getIndex().getINDEX());
                                         if (ann == null) {
@@ -708,13 +705,13 @@ public class Interpret {
                                         if (ann == null) {
                                             isAnnotated = false;
                                             break;
-                                        }                                        
+                                        }
                                     }
                                     else {
                                         isAnnotated = false;
                                         break;
                                     }
-                                }                                
+                                }
                             }
                             else { //@NAME.NAME
                                 if (isAE) {
@@ -731,13 +728,13 @@ public class Interpret {
                                         isAnnotated = false;
                                         break;
                                     }
-                                }                                
+                                }
                             }
                         }
                         else if (apc.getAT_NAME() != null) {//@NAME.NAME.@NAME
                             String ATname = apc.getAT_NAME();
                             if (ATname.compareTo(ann.getName()) == 0) {
-                                
+
                             }
                             else {
                                 isAnnotated = false;
@@ -746,26 +743,26 @@ public class Interpret {
                         }
                     }
                 }
-                else {                    
+                else {
                     continue;
                 }
-                
-                if (isAnnotated) {                    
+
+                if (isAnnotated) {
                     anpTmp.add(ann);
                     tmp.add(ce);
                 }
             }
 
 // </editor-fold>
-        }        
-        
-        if(!_isRight) {            
+        }
+
+        if(!_isRight) {
             _annotatedLeft = anpTmp;
             alTmp.clear();
-            alTmp.addAll(tmp);            
+            alTmp.addAll(tmp);
         }
         else {
-            _annotatedRight = anpTmp;  
+            _annotatedRight = anpTmp;
         }
     }
 
@@ -773,7 +770,7 @@ public class Interpret {
         _indexStar = false;
     }
 // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" as, INDEX and alias ">
     public void exitIndex(IndexContext ctx) {
         if(ctx.isSTAR()) {
@@ -781,39 +778,39 @@ public class Interpret {
         }
         _index = ctx.getINDEX();
     }
-        
+
     public void exitAs(AsContext ctx) {
          _as = ctx.getNAME();
     }
-    
+
     public void exitAlias(AliasContext ctx) {
         _alias = ctx.getNAME();
     }
     // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc=" RightStatment ">    
+    // <editor-fold defaultstate="collapsed" desc=" RightStatment ">
     public void enterRightStatment(RightStatmentContext ctx) {
         _alias = null;
         _isRight = true;
     }
 
 // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" Equal ">    
+
+    // <editor-fold defaultstate="collapsed" desc=" Equal ">
     public void exitEqual(EqualContext ctx) {
         if (_error) return;
-        
+
         if (ctx.getOPERATORS() != null && ctx.getOPERATORS() == Operators.IN)
         {
             _error=true;
             _errMsg.add(new ErrorMessage("Neplatný operátor: " + ctx.getOPERATORS(), _error));
             return;
         }
-        
+
         List<ClassEntity> tmp = new ArrayList();
         List<ClassEntity> alTmp = null;
 
-        // <editor-fold defaultstate="collapsed" desc=" IF alias ">           
+        // <editor-fold defaultstate="collapsed" desc=" IF alias ">
             if (ctx.getAlias() != null) {
                 String alias = ctx.getAlias();
                 boolean isTrue = false;
@@ -834,15 +831,15 @@ public class Interpret {
             }
 
             // </editor-fold>
-            
+
         if(ctx.getNAME() != null)  //alias? NAME OPERATORS rightStatment
-        {   
-            if (ctx.getRsctx().getSTRING() != null) { // (as.)? NAME = 'String' (M:1)            
+        {
+            if (ctx.getRsctx().getSTRING() != null) { // (as.)? NAME = 'String' (M:1)
                 // <editor-fold defaultstate="collapsed" desc=" as? name = 'String' ">
                 String str = ctx.getRsctx().getSTRING();
                 switch (ctx.getNAME().toLowerCase()) {
                     case "name":
-                        for (ClassEntity ce : alTmp) {                            
+                        for (ClassEntity ce : alTmp) {
                             if (ce.getName().compareTo(str) == 0) {
                                 if (ctx.getOPERATORS() == Operators.EQUAL) { // =
                                     tmp.add(ce);
@@ -853,16 +850,16 @@ public class Interpret {
                                     tmp.add(ce);
                                 }
                             }
-                            
+
                             if (ce.getName().contains(str)) {
                                 if (ctx.getOPERATORS() == Operators.SIMILAR) { // ~
                                     tmp.add(ce);
                                 }
-                            }                            
+                            }
                         }
                         break;
                     case "fqn":
-                        for (ClassEntity ce : alTmp) {                            
+                        for (ClassEntity ce : alTmp) {
                             if (ce.getFQN().compareTo(str) == 0) {
                                 if (ctx.getOPERATORS() == Operators.EQUAL) {  // =
                                     tmp.add(ce);
@@ -873,7 +870,7 @@ public class Interpret {
                                     tmp.add(ce);
                                 }
                             }
-                            
+
                             if (ce.getFQN().contains(str)) {
                                 if (ctx.getOPERATORS() == Operators.SIMILAR) { // ~
                                     tmp.add(ce);
@@ -884,7 +881,7 @@ public class Interpret {
                     default:
                         _error = true;
                         _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.getNAME(), _error));
-                        return;                    
+                        return;
                 }
 
             // </editor-fold>
@@ -894,7 +891,7 @@ public class Interpret {
                 String pattern = ctx.getRsctx().getPATTERN();
                 switch (ctx.getNAME().toLowerCase()) {
                     case "name" :
-                        for (ClassEntity ce : alTmp) {                            
+                        for (ClassEntity ce : alTmp) {
                             if (ce.getName().matches(pattern)) {
                                 if (ctx.getOPERATORS() == Operators.EQUAL) {
                                     tmp.add(ce);
@@ -908,7 +905,7 @@ public class Interpret {
                         }
                         break;
                     case "fqn":
-                        for (ClassEntity ce : alTmp) {                            
+                        for (ClassEntity ce : alTmp) {
                             if (ce.getFQN().matches(pattern)) {
                                 if (ctx.getOPERATORS() == Operators.EQUAL) {
                                     tmp.add(ce);
@@ -918,20 +915,20 @@ public class Interpret {
                                 if (ctx.getOPERATORS() == Operators.NOT_EQUAL) {
                                     tmp.add(ce);
                                 }
-                            }                            
+                            }
                         }
                         break;
                     default:
                         _error = true;
                         _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.getNAME(), _error));
-                        return;                    
+                        return;
                 }
 
             // </editor-fold>
             }
             else if (ctx.getRsctx().getNAME() != null) { // (as.)? NAME = (AS.)? NAME (M:N)
                 // <editor-fold defaultstate="collapsed" desc=" as? NAME = as? NAME ">
-                List<ClassEntity> ceTmp = null;                
+                List<ClassEntity> ceTmp = null;
                 if (ctx.getRsctx().getAlias() != null) {
                     String alias = ctx.getRsctx().getAlias();
                     boolean isTrue = false;
@@ -950,11 +947,11 @@ public class Interpret {
                 } else {
                     ceTmp = _langContext.get(_depth).result;
                 }
-                
+
                 String cmpNAME = ctx.getRsctx().getNAME();
                 switch (ctx.getNAME().toLowerCase()) {
                     case "name":
-                        for (ClassEntity ce : alTmp) {                            
+                        for (ClassEntity ce : alTmp) {
                             for (ClassEntity sec : ceTmp) {
                                 String cmpValue;
                                 switch (cmpNAME.toLowerCase()){
@@ -968,8 +965,8 @@ public class Interpret {
                                         _error = true;
                                         _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.getNAME(), _error));
                                         return;
-                                }                                
-                                
+                                }
+
                                 if (ce.getName().compareTo(cmpValue) == 0) {
                                     if (ctx.getOPERATORS() == Operators.EQUAL) {
                                         tmp.add(ce);
@@ -979,7 +976,7 @@ public class Interpret {
                                         tmp.add(ce);
                                     }
                                 }
-                                
+
                                 if (ce.getName().contains(cmpValue)) {
                                     if (ctx.getOPERATORS() == Operators.SIMILAR) {
                                         tmp.add(ce);
@@ -989,7 +986,7 @@ public class Interpret {
                         }
                         break;
                     case "fqn":
-                        for (ClassEntity ce : alTmp) {                            
+                        for (ClassEntity ce : alTmp) {
                             for (ClassEntity sec : ceTmp) {
                                 String cmpValue;
                                 switch (cmpNAME.toLowerCase()){
@@ -1013,7 +1010,7 @@ public class Interpret {
                                         tmp.add(ce);
                                     }
                                 }
-                                
+
                                 if (ce.getFQN().contains(cmpValue)) {
                                     if (ctx.getOPERATORS() == Operators.SIMILAR) {
                                         tmp.add(ce);
@@ -1025,17 +1022,17 @@ public class Interpret {
                     default:
                         _error = true;
                         _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.getNAME(), _error));
-                        return;                    
+                        return;
                 }
 
-            // </editor-fold>                
+            // </editor-fold>
             }
             else if (ctx.getRsctx().isAnnotated()){ // NAME = @Annotated (M:N)
-                // <editor-fold defaultstate="collapsed" desc=" as? NAME = as? Annotated ">                
+                // <editor-fold defaultstate="collapsed" desc=" as? NAME = as? Annotated ">
                 switch (ctx.getNAME().toLowerCase()) {
                     case "name":
-                        for (ClassEntity ce : alTmp) {                            
-                            for ( AnnParaEntity sec : _annotatedRight) {                                
+                        for (ClassEntity ce : alTmp) {
+                            for ( AnnotationAttributeEntity sec : _annotatedRight) {
                                 if (ce.getName().compareTo(sec.getValue()) == 0) {
                                     if (ctx.getOPERATORS() == Operators.EQUAL) {
                                         tmp.add(ce);
@@ -1045,7 +1042,7 @@ public class Interpret {
                                         tmp.add(ce);
                                     }
                                 }
-                                
+
                                 if (ce.getName().contains(sec.getValue())) {
                                     if (ctx.getOPERATORS() == Operators.SIMILAR) {
                                         tmp.add(ce);
@@ -1055,8 +1052,8 @@ public class Interpret {
                         }
                         break;
                     case "fqn":
-                        for (ClassEntity ce : alTmp) {                            
-                            for ( AnnParaEntity sec : _annotatedRight) {                                
+                        for (ClassEntity ce : alTmp) {
+                            for ( AnnotationAttributeEntity sec : _annotatedRight) {
                                 if (ce.getFQN().compareTo(sec.getValue()) == 0) {
                                     if (ctx.getOPERATORS() == Operators.EQUAL) {
                                         tmp.add(ce);
@@ -1066,7 +1063,7 @@ public class Interpret {
                                         tmp.add(ce);
                                     }
                                 }
-                                
+
                                 if (ce.getFQN().contains(sec.getValue())) {
                                     if (ctx.getOPERATORS() == Operators.SIMILAR) {
                                         tmp.add(ce);
@@ -1078,25 +1075,25 @@ public class Interpret {
                     default:
                         _error = true;
                         _errMsg.add(new ErrorMessage("Neplatné slovo :" + ctx.getNAME(), _error));
-                        return;                    
+                        return;
                 }
 
-            // </editor-fold>                
-            }                        
+            // </editor-fold>
+            }
         }
         else if(ctx.getOPERATORS() != null) //alias? annotated OPERATORS rightStatment
-        {            
-            if(ctx.getRsctx().getSTRING() != null) {             
+        {
+            if(ctx.getRsctx().getSTRING() != null) {
                 // <editor-fold defaultstate="collapsed" desc=" @Annotated = STRING ">
                 String cmp = ctx.getRsctx().getSTRING();
                 for (int i = 0; i < _annotatedLeft.size(); i++) {
                     ClassEntity ce = alTmp.get(i);
-                    AnnParaEntity left = _annotatedLeft.get(i);
+                    AnnotationAttributeEntity left = _annotatedLeft.get(i);
                     if (left.getValue() == null) {
                         _error = true;
                         _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
-                        return;                        
-                    }                    
+                        return;
+                    }
                     if (left.getValue().compareTo(cmp) == 0) {
                         if (ctx.getOPERATORS() == Operators.EQUAL) {
                             tmp.add(ce);
@@ -1111,21 +1108,21 @@ public class Interpret {
                         if (ctx.getOPERATORS() == Operators.SIMILAR) {
                             tmp.add(ce);
                         }
-                    }                    
+                    }
                 }
                 // </editor-fold>
             }
             else if (ctx.getRsctx().getPATTERN() != null) {
-                // <editor-fold defaultstate="collapsed" desc=" @Annotated = Pattern ">                
+                // <editor-fold defaultstate="collapsed" desc=" @Annotated = Pattern ">
                 String pattern = ctx.getRsctx().getPATTERN();
                 for (int i = 0; i < _annotatedLeft.size(); i++) {
                     ClassEntity ce = alTmp.get(i);
-                    AnnParaEntity left = _annotatedLeft.get(i);
+                    AnnotationAttributeEntity left = _annotatedLeft.get(i);
                     if (left.getValue() == null) {
                         _error = true;
                         _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
-                        return;                        
-                    }                    
+                        return;
+                    }
                     if (left.getValue().matches(pattern)) {
                         if (ctx.getOPERATORS() == Operators.EQUAL) {
                             tmp.add(ce);
@@ -1134,11 +1131,11 @@ public class Interpret {
                         if (ctx.getOPERATORS() == Operators.NOT_EQUAL) {
                             tmp.add(ce);
                         }
-                    }                                        
+                    }
                 }
                 // </editor-fold>
             }
-            else if(ctx.getRsctx().getNAME() != null) {                
+            else if(ctx.getRsctx().getNAME() != null) {
                 // <editor-fold defaultstate="collapsed" desc=" @Annotated = NAME ">
                 List<ClassEntity> ceTmp = null;
                 if (ctx.getRsctx().getAlias() != null) {
@@ -1162,11 +1159,11 @@ public class Interpret {
                 String cmpNAME =ctx.getRsctx().getNAME();
                 for (int i = 0; i < _annotatedLeft.size(); i++) {
                     ClassEntity ce = alTmp.get(i);
-                    AnnParaEntity left = _annotatedLeft.get(i);                    
+                    AnnotationAttributeEntity left = _annotatedLeft.get(i);
                     if (left.getValue() == null) {
                         _error = true;
                         _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
-                        return;                        
+                        return;
                     }
                     for (ClassEntity sec : ceTmp) {
                         String cmpValue;
@@ -1191,7 +1188,7 @@ public class Interpret {
                                 tmp.add(ce);
                             }
                         }
-                        
+
                         if (left.getValue().contains(cmpValue)) {
                             if (ctx.getOPERATORS() == Operators.SIMILAR) {
                                 tmp.add(ce);
@@ -1206,13 +1203,13 @@ public class Interpret {
                 // <editor-fold defaultstate="collapsed" desc=" @Annotated = @Annotated ">
                 for (int i = 0; i < _annotatedLeft.size(); i++) {
                     ClassEntity ce = alTmp.get(i);
-                    AnnParaEntity left = _annotatedLeft.get(i);
+                    AnnotationAttributeEntity left = _annotatedLeft.get(i);
                     if (left.getValue() == null) {
                         _error = true;
                         _errMsg.add(new ErrorMessage("Anotace na levé strane má nevalidní tvar porovnávat se dají pouze hodnoty parametru :", _error));
-                        return;                        
+                        return;
                     }
-                    for (AnnParaEntity sec : _annotatedRight) {
+                    for (AnnotationAttributeEntity sec : _annotatedRight) {
                         if (left.getValue().compareTo(sec.getValue()) == 0) {
                             if (ctx.getOPERATORS() == Operators.EQUAL) {
                                 tmp.add(ce);
@@ -1222,7 +1219,7 @@ public class Interpret {
                                 tmp.add(ce);
                             }
                         }
-                        
+
                         if (left.getValue().contains(sec.getValue())) {
                             if (ctx.getOPERATORS() == Operators.SIMILAR) {
                                 tmp.add(ce);
@@ -1232,7 +1229,7 @@ public class Interpret {
                 }
 
                 // </editor-fold>
-            }             
+            }
         }
         else if (ctx.isANNOTATED()) {    //alias? annotated
             return; //vyøízeno v exitAnnotated;
@@ -1244,7 +1241,7 @@ public class Interpret {
                 for (ClassEntity ce : alTmp) {
                     for (MethodEntity me : ce.getMethodRelated()) {
                         boolean isTrue = true;
-                        for (String key : ctx.getMethod().getArg().keySet()) {                            
+                        for (String key : ctx.getMethod().getArg().keySet()) {
                             switch (key.toLowerCase()) {
                                 case "arg":
                                     String cmp = me.getBriefDescription().replaceFirst(".*\\(", "");
@@ -1253,7 +1250,7 @@ public class Interpret {
                                         isTrue = false;
                                     }
                                     break;
-                                case "name":                                    
+                                case "name":
                                     if (ctx.getMethod().getArg().get(key).compareTo(me.getName()) != 0) {
                                         isTrue = false;
                                     }
@@ -1272,9 +1269,9 @@ public class Interpret {
                 }
             } // </editor-fold>
             else if (ctx.getMethod().STAR()) {
-                // <editor-fold defaultstate="collapsed" desc=" STAR ">                
+                // <editor-fold defaultstate="collapsed" desc=" STAR ">
                 for (ClassEntity ce : alTmp) {
-                    for (MethodEntity me : ce.getMethodRelated()) {                        
+                    for (MethodEntity me : ce.getMethodRelated()) {
                         tmp.add(ce);
                     }
                 }
@@ -1284,21 +1281,21 @@ public class Interpret {
                 String strTMP = ctx.getMethod().Description().replaceAll("[' ]", "");
                 String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
                 String[] paramTMP = {};
-                
+
                 if (paramsTMP.compareTo("") != 0) {
                     paramTMP = paramsTMP.split(",");
                 }
-                
-                String name = strTMP.replaceFirst("\\(.*", "");                
-                
+
+                String name = strTMP.replaceFirst("\\(.*", "");
+
                 for (ClassEntity ce : alTmp) {
-                    for (MethodEntity me : ce.getMethodRelated(name)) {                        
+                    for (MethodEntity me : ce.getMethodRelated(name)) {
                         if (me.getCountPara() != paramTMP.length) {
                             continue;
                         }
                         boolean isTrueMethod = true;
                         for (MethParaEntity mpr : me.getMethParaRelated()) {
-                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                
+                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {
                                 isTrueMethod = false;
                             }
                         }
@@ -1307,35 +1304,35 @@ public class Interpret {
                             break;
                         }
                     }
-                }                
+                }
             }
             // </editor-fold>
 
 // </editor-fold>
         }
          alTmp.clear();
-         alTmp.addAll(tmp);         
+         alTmp.addAll(tmp);
     }
-    
+
     public void enterEqual(EqualContext ctx) {
         _alias = null;
         _isRight = false;
     }
 
 // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" Cond ">    
+
+    // <editor-fold defaultstate="collapsed" desc=" Cond ">
     public void exitCond(CondContext ctx) {
-        if (_error) return;        
-        
+        if (_error) return;
+
         List<ClassEntity> tmp = new ArrayList();
-        
-        if (ctx.Equal()) // zpracovat v exitEqual(): equal 
+
+        if (ctx.Equal()) // zpracovat v exitEqual(): equal
         {
             return;
         }
         else if (ctx.OPERATORS() != null)//:innerSelect OPERATORS alias? NAME
-        {                       
+        {
             if(ctx.ALIAS() == null)
             {
                 // <editor-fold defaultstate="collapsed" desc=" Not Alias ">
@@ -1380,9 +1377,9 @@ public class Interpret {
                                 default:
                                     _error = true;
                                     _errMsg.add(new ErrorMessage("Oèekáváno klíèové slovo ne: " + ctx.NAME(), _error));
-                                    return;                                
+                                    return;
                             }
-                            
+
                         }
                         if (isTrue) {
                             tmp.add(ce);
@@ -1397,9 +1394,9 @@ public class Interpret {
 // </editor-fold>
             }
             else    // with alias
-            {                    
+            {
                 // <editor-fold defaultstate="collapsed" desc=" Alias ">
-                String alias = ctx.ALIAS();                
+                String alias = ctx.ALIAS();
                     if (ctx.OPERATORS() == Operators.IN) {
                         boolean found = false;
                         for (int i = _depth; i >= 0; i--) {
@@ -1444,7 +1441,7 @@ public class Interpret {
                                             default:
                                                 _error = true;
                                                 _errMsg.add(new ErrorMessage("Oèekáváno klíèové slovo ne: " + ctx.NAME(), _error));
-                                                return;                                            
+                                                return;
                                         }
                                     }
                                     if (isTrue) {
@@ -1453,7 +1450,7 @@ public class Interpret {
                                 }
                                 _langContext.get(i).mapAS.get(alias).clear();
                                 _langContext.get(i).mapAS.get(alias).addAll(tmp);
-                                return;                                
+                                return;
                             }
                         }
                         if (!found) {
@@ -1473,9 +1470,9 @@ public class Interpret {
         {
             // <editor-fold defaultstate="collapsed" desc=" (Not)?Exist InnerSelect">
 
-            boolean isEmpty = _langContext.get(_depth + 1).result.isEmpty();            
+            boolean isEmpty = _langContext.get(_depth + 1).result.isEmpty();
             if (ctx.EXIST()){
-                if (!isEmpty) {                    
+                if (!isEmpty) {
                     tmp = _langContext.get(_depth).result;
                 }
             }
@@ -1485,7 +1482,7 @@ public class Interpret {
                 }
             }
             // </editor-fold>
-        }       
+        }
         else //: (!)? alias? NAME
         {
             if(ctx.ALIAS() == null)
@@ -1493,7 +1490,7 @@ public class Interpret {
                 // <editor-fold defaultstate="collapsed" desc=" NAME ">
                 switch (ctx.NAME().toLowerCase()) {
                     case "class":
-                        for (ClassEntity re : _langContext.get(_depth).result) {                            
+                        for (ClassEntity re : _langContext.get(_depth).result) {
                             if (re.getType().compareToIgnoreCase("class") == 0) {
                                 if(ctx.EXCLAMANTION()) {
                                     tmp.add(re);
@@ -1785,7 +1782,7 @@ public class Interpret {
                                 break;
                         }
                        _langContext.get(i).mapAS.get(alias).clear();
-                       _langContext.get(i).mapAS.get(alias).addAll(tmp);                       
+                       _langContext.get(i).mapAS.get(alias).addAll(tmp);
                         return;
                     }
                 }
@@ -1798,18 +1795,18 @@ public class Interpret {
 // </editor-fold>
             }
         }
-        
+
         _langContext.get(_depth).result = tmp;
     }
-    
+
     public void enterCond(CondContext ctx) {
         _alias = null;
     }
-    
+
 // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" Conditions ">
-    
+
     public void enterConditions(ConditionsContext ctx) {
         _langContext.get(_depth)._WHERE = true;
         if (!_langContext.get(_depth)._FROM) {
@@ -1819,38 +1816,38 @@ public class Interpret {
     }
 
 // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" PackageName ">    
+
+    // <editor-fold defaultstate="collapsed" desc=" PackageName ">
     public void exitPackageName(PackageNameContext ctx) {
         if (_error) {
             return;
         }
-        
-        if (ctx.InnerClass()) {            
+
+        if (ctx.InnerClass()) {
             _packageLink.addAll(_langContext.get(_depth + 1).result);
         }
-        else if (ctx.EXCLAMANTION() && ctx.STRING() != null) {            
+        else if (ctx.EXCLAMANTION() && ctx.STRING() != null) {
             _packageLink.addAll(_graphContext.getClassInPackage(ctx.STRING()));
         }
-        else if(ctx.STRING() != null) {            
+        else if(ctx.STRING() != null) {
             _packageLink.addAll(_graphContext.getClassInPackageRecursion(ctx.STRING()));
         }
     }
-        
+
     public void enterPackageName(PackageNameContext ctx) {
-        
+
     }
 
 // </editor-fold>
 
-    // <editor-fold defaultstate="collapsed" desc=" PackageLink ">    
+    // <editor-fold defaultstate="collapsed" desc=" PackageLink ">
     public void exitPackageLink(PackageLinkContext ctx) {
         if(ctx.isSTAR()) {
             _packageLink = _graphContext.getClassInPackage("*");
         }
-        
-        if (ctx.getAS() == null) {            
-                _langContext.get(_depth).result.addAll(_packageLink);                
+
+        if (ctx.getAS() == null) {
+                _langContext.get(_depth).result.addAll(_packageLink);
         }
         else {
             if (_langContext.get(_depth).mapAS.containsKey(_as)) //duplicitni alias
@@ -1858,54 +1855,54 @@ public class Interpret {
                 _errMsg.add(new ErrorMessage("Tento alias už existuje: " + _as, true));
                 _error = true;
             }
-            else {                                   
-                _langContext.get(_depth).mapAS.put(_as, _packageLink);                
+            else {
+                _langContext.get(_depth).mapAS.put(_as, _packageLink);
             }
-        }        
+        }
     }
-    
+
     public void enterPackageLink(PackageLinkContext ctx) {
         _as = null;
         this._packageLink = new ArrayList();
     }
-    
-    // </editor-fold>        
-    
-    // <editor-fold defaultstate="collapsed" desc=" Packages ">    
+
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc=" Packages ">
     public void exitPackages(PackagesContext ctx) {
-                        
+
     }
-        
+
     public void enterPackages(PackagesContext ctx) {
         _langContext.get(_depth)._FROM = true;
     }
     // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" ParamName ">    
+
+    // <editor-fold defaultstate="collapsed" desc=" ParamName ">
     public void exitParamName(ParamNameContext ctx) {
         if (ctx.InnerSelect()) {
-            _langContext.get(_depth).selectListInner.addAll(_langContext.get(_depth + 1).result);            
-        }        
-        _langContext.get(_depth).selectListCtx.add(ctx);        
+            _langContext.get(_depth).selectListInner.addAll(_langContext.get(_depth + 1).result);
+        }
+        _langContext.get(_depth).selectListCtx.add(ctx);
     }
-    
+
     public void enterParamName(ParamNameContext ctx) {
         _alias = null;
     }
     // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" ParamSelect ">    
-    public void enterParamSelect(ParamSelectContext ctx) {        
-        _langContext.get(_depth)._SELECT = true;        
+
+    // <editor-fold defaultstate="collapsed" desc=" ParamSelect ">
+    public void enterParamSelect(ParamSelectContext ctx) {
+        _langContext.get(_depth)._SELECT = true;
     }
     // </editor-fold>
-    
-    // <editor-fold defaultstate="collapsed" desc=" SelectStatment ">    
+
+    // <editor-fold defaultstate="collapsed" desc=" SelectStatment ">
     public void exitSelectStatment(SelectStatmentContext ctx) {
         if (_error) {
             return;
-        }        
-        
+        }
+
         if (!_langContext.get(_depth)._FROM) {
             if(!_langContext.get(_depth)._SELECT && !_langContext.get(_depth)._WHERE) {
                 _error = true;
@@ -1915,20 +1912,20 @@ public class Interpret {
             _langContext.get(_depth).result = _graphContext.getClassInPackage("*");
             _langContext.get(_depth)._FROM = true;
         }
-        
+
         List<ClassEntity> tmp = new ArrayList();
-        
+
         if (_langContext.get(_depth).selectListCtx.isEmpty()) // select nebyl zadan
         {
-            for (String str : _langContext.get(_depth).mapAS.keySet()) {                
+            for (String str : _langContext.get(_depth).mapAS.keySet()) {
                 tmp.addAll(_langContext.get(_depth).mapAS.get(str));
-            }            
+            }
             tmp.addAll(_langContext.get(_depth).result);
         }
-        
-        for (ParamNameContext select : _langContext.get(_depth).selectListCtx) {            
+
+        for (ParamNameContext select : _langContext.get(_depth).selectListCtx) {
             if (select.EXCLAMANTION())// ! name | ! alias.name
-            {                                
+            {
                 if (select.NAME().compareToIgnoreCase("extends") == 0) //!name
                     // <editor-fold defaultstate="collapsed" desc=" extends ">
                 {
@@ -1939,7 +1936,7 @@ public class Interpret {
                                 tmp.addAll(Lists.newArrayList(Related));
                             }
                         }
-                    } else { // !alias.name                    
+                    } else { // !alias.name
                         String alias = select.ALIAS();
                         boolean found = false;
                         for (int i = _depth; i >= 0; i--) {
@@ -1971,7 +1968,7 @@ public class Interpret {
                                 tmp.addAll(Lists.newArrayList(Related));
                             }
                         }
-                    } else {// !alias.name                    
+                    } else {// !alias.name
                         String alias = select.ALIAS();
                         boolean found = false;
                         for (int i = _depth; i >= 0; i--) {
@@ -1991,7 +1988,7 @@ public class Interpret {
                             _errMsg.add(new ErrorMessage("Alias: " + alias + " nebyl nalezen", true));
                             return;
                         }
-                    }                    
+                    }
                 } // </editor-fold>
                 else if (select.NAME().compareToIgnoreCase("implements") == 0) {
                     // <editor-fold defaultstate="collapsed" desc=" Implements ">
@@ -2002,7 +1999,7 @@ public class Interpret {
                                 tmp.addAll(Lists.newArrayList(Related));
                             }
                         }
-                    } else { // !alias.name                    
+                    } else { // !alias.name
                         String alias = select.ALIAS();
                         boolean found = false;
                         for (int i = _depth; i >= 0; i--) {
@@ -2022,19 +2019,19 @@ public class Interpret {
                             _errMsg.add(new ErrorMessage("Alias: " + alias + " nebyl nalezen", true));
                             return;
                         }
-                    }                    
+                    }
                 }
 
 // </editor-fold>
             }
-            else if (select.Method() != null && select.NAME().compareToIgnoreCase("call") == 0) { // alias.method[...]                
-                if (select.Method().getArg() != null) {                    
+            else if (select.Method() != null && select.NAME().compareToIgnoreCase("call") == 0) { // alias.method[...]
+                if (select.Method().getArg() != null) {
                     // <editor-fold defaultstate="collapsed" desc=" Arg ">
                     if (select.ALIAS() == null) {
                         for (ClassEntity ce : _langContext.get(_depth).result) {
                             for (MethodEntity me : ce.getMethodRelated()) {
                                 boolean isTrue = true;
-                                for (String key : select.Method().getArg().keySet()) {                                    
+                                for (String key : select.Method().getArg().keySet()) {
                                     switch (key.toLowerCase()) {
                                         case "arg":
                                             String cmp = me.getBriefDescription().replaceFirst(".*\\(", "");
@@ -2043,7 +2040,7 @@ public class Interpret {
                                                 isTrue = false;
                                             }
                                             break;
-                                        case "name":                                            
+                                        case "name":
                                             if (select.Method().getArg().get(key).compareTo(me.getName()) != 0) {
                                                 isTrue = false;
                                             }
@@ -2057,13 +2054,13 @@ public class Interpret {
                                     continue;
                                 }
                                 for (MethodEntity mic : me.getInCallRelated()) {
-                                    tmp.add(mic.getInClassRelated());                                    
+                                    tmp.add(mic.getInClassRelated());
                                 }
                                 if (ce.getType().compareToIgnoreCase("interface") == 0) {
                                     List<ClassEntity> listTMP = callInterface(ce.getInImplementsRelated(), me);
                                     if (listTMP != null) {
-                                        tmp.addAll(listTMP);                                        
-                                    }                                    
+                                        tmp.addAll(listTMP);
+                                    }
                                 }
                                 if (ce.getInExtendsRelated() != null) {
                                     List<ClassEntity> listTMP = callInterface(ce.getInExtendsRelated(), me);
@@ -2081,7 +2078,7 @@ public class Interpret {
                                 for (ClassEntity ce : _langContext.get(i).mapAS.get(alias)) {
                                     for (MethodEntity me : ce.getMethodRelated()) {
                                         boolean isTrue = true;
-                                        for (String key : select.Method().getArg().keySet()) {                                            
+                                        for (String key : select.Method().getArg().keySet()) {
                                             switch (key.toLowerCase()) {
                                                 case "arg":
                                                     String cmp = me.getBriefDescription().replaceFirst(".*\\(", "");
@@ -2090,7 +2087,7 @@ public class Interpret {
                                                         isTrue = false;
                                                     }
                                                     break;
-                                                case "name":                                                    
+                                                case "name":
                                                     if (select.Method().getArg().get(key).compareTo(me.getName()) != 0) {
                                                         isTrue = false;
                                                     }
@@ -2103,13 +2100,13 @@ public class Interpret {
                                             continue;
                                         }
                                         for (MethodEntity mic : me.getInCallRelated()) {
-                                            tmp.add(mic.getInClassRelated());                                            
+                                            tmp.add(mic.getInClassRelated());
                                         }
                                         if (ce.getType().compareToIgnoreCase("interface") == 0) {
                                             List<ClassEntity> listTMP = callInterface(ce.getInImplementsRelated(), me);
                                             if (listTMP != null) {
-                                                tmp.addAll(listTMP);                                                
-                                            }                                            
+                                                tmp.addAll(listTMP);
+                                            }
                                         }
                                         if (ce.getInExtendsRelated() != null) {
                                             List<ClassEntity> listTMP = callInterface(ce.getInExtendsRelated(), me);
@@ -2134,15 +2131,15 @@ public class Interpret {
                     // <editor-fold defaultstate="collapsed" desc=" STAR ">
                     if (select.ALIAS() == null) {
                         for (ClassEntity ce : _langContext.get(_depth).result) {
-                            for (MethodEntity me : ce.getMethodRelated()) {                                
+                            for (MethodEntity me : ce.getMethodRelated()) {
                                 for (MethodEntity mic : me.getInCallRelated()) {
-                                    tmp.add(mic.getInClassRelated());                                    
+                                    tmp.add(mic.getInClassRelated());
                                 }
                                 if (ce.getType().compareToIgnoreCase("interface") == 0) {
                                     List<ClassEntity> listTMP = callInterface(ce.getInImplementsRelated(), me);
                                     if (listTMP != null) {
-                                        tmp.addAll(listTMP);                                            
-                                    }                                        
+                                        tmp.addAll(listTMP);
+                                    }
                                 }
                                 if(ce.getInExtendsRelated() != null) {
                                     List<ClassEntity> listTMP = callInterface(ce.getInExtendsRelated(), me);
@@ -2161,13 +2158,13 @@ public class Interpret {
                                 for (ClassEntity ce : _langContext.get(i).mapAS.get(alias)) {
                                     for (MethodEntity me : ce.getMethodRelated()) {
                                         for (MethodEntity mic : me.getInCallRelated()) {
-                                            tmp.add(mic.getInClassRelated());                                            
+                                            tmp.add(mic.getInClassRelated());
                                         }
                                         if (ce.getType().compareToIgnoreCase("interface") == 0) {
                                             List<ClassEntity> listTMP = callInterface(ce.getInImplementsRelated(), me);
                                             if (listTMP != null) {
-                                                tmp.addAll(listTMP);                                            
-                                            }                                        
+                                                tmp.addAll(listTMP);
+                                            }
                                         }
                                         if(ce.getInExtendsRelated() != null) {
                                             List<ClassEntity> listTMP = callInterface(ce.getInExtendsRelated(), me);
@@ -2194,35 +2191,35 @@ public class Interpret {
                     String strTMP = select.Method().Description().replaceAll("[' ]", "");
                     String paramsTMP = strTMP.replaceFirst("^[\\w<>]*", "").replaceAll("[)(]", "");
                     String[] paramTMP = {};
-                    
+
                     if (paramsTMP.compareTo("") != 0) {
                         paramTMP = paramsTMP.split(",");
                     }
-                    
-                    String name = strTMP.replaceFirst("\\(.*", "");                    
-                    
+
+                    String name = strTMP.replaceFirst("\\(.*", "");
+
                     if (select.ALIAS() == null) {
                         for (ClassEntity ce : _langContext.get(_depth).result) {
-                            
-                            for (MethodEntity me : ce.getMethodRelated(name)) {                                
+
+                            for (MethodEntity me : ce.getMethodRelated(name)) {
                                 if (me.getCountPara() != paramTMP.length) {
                                     continue;
                                 }
                                 boolean isTrueMethod = true;
                                 for (MethParaEntity mpr : me.getMethParaRelated()) {
-                                    if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                        
+                                    if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {
                                         isTrueMethod = false;
                                     }
                                 }
                                 if (isTrueMethod) {
                                     for (MethodEntity mic : me.getInCallRelated()) {
-                                        tmp.add(mic.getInClassRelated());                                        
+                                        tmp.add(mic.getInClassRelated());
                                     }
                                     if (ce.getType().compareToIgnoreCase("interface") == 0) {
                                         List<ClassEntity> listTMP = callInterface(ce.getInImplementsRelated(), me);
                                         if (listTMP != null) {
-                                            tmp.addAll(listTMP);                                            
-                                        }                                        
+                                            tmp.addAll(listTMP);
+                                        }
                                     }
                                     if(ce.getInExtendsRelated() != null) {
                                         List<ClassEntity> listTMP = callInterface(ce.getInExtendsRelated(), me);
@@ -2240,25 +2237,25 @@ public class Interpret {
                         for (int i = _depth; i >= 0; i--) {
                             if (_langContext.get(i).mapAS.containsKey(alias)) {
                                 for (ClassEntity ce : _langContext.get(i).mapAS.get(alias)) {
-                                    for (MethodEntity me : ce.getMethodRelated(name)) {                                                
+                                    for (MethodEntity me : ce.getMethodRelated(name)) {
                                         if (me.getCountPara() != paramTMP.length) {
                                             continue;
                                         }
                                         boolean isTrueMethod = true;
                                         for (MethParaEntity mpr : me.getMethParaRelated()) {
-                                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {                                                        
+                                            if (mpr.getFQN().compareTo(paramTMP[mpr.getIndex()]) != 0) {
                                                 isTrueMethod = false;
                                             }
                                         }
                                         if (isTrueMethod) {
                                             for (MethodEntity mic : me.getInCallRelated()) {
-                                                tmp.add(mic.getInClassRelated());                                                        
+                                                tmp.add(mic.getInClassRelated());
                                             }
                                             if (ce.getType().compareToIgnoreCase("interface") == 0) {
                                                 List<ClassEntity> listTMP = callInterface(ce.getInImplementsRelated(), me);
                                                 if (listTMP != null) {
-                                                    tmp.addAll(listTMP);                                            
-                                                }                                        
+                                                    tmp.addAll(listTMP);
+                                                }
                                             }
                                             if(ce.getInExtendsRelated() != null) {
                                                 List<ClassEntity> listTMP = callInterface(ce.getInExtendsRelated(), me);
@@ -2282,10 +2279,10 @@ public class Interpret {
                 }
                 // </editor-fold>
             }
-            else if (select.InnerSelect()) { // (inner select)            
+            else if (select.InnerSelect()) { // (inner select)
                 // zùstane prázdne vlození výsledku je na konci metody _langContext.get(_depth+1).seleceListInner
             }
-            else if(select.NAME() != null) {// name | name as name                            
+            else if(select.NAME() != null) {// name | name as name
                 if (select.NAME().compareToIgnoreCase("extends") == 0) {
                     // <editor-fold defaultstate="collapsed" desc=" Extends ">
                     if (select.ALIAS() == null) {
@@ -2298,7 +2295,7 @@ public class Interpret {
                     } else {
                         String alias = select.ALIAS();
                         boolean found = false;
-                        for (int i = _depth; i >= 0; i--) {                            
+                        for (int i = _depth; i >= 0; i--) {
                             if (_langContext.get(i).mapAS.containsKey(alias)) {
                                 for (ClassEntity ce : _langContext.get(i).mapAS.get(alias)) {
                                     Iterable<ClassEntity> Related = ce.getExtendsRelated();
@@ -2382,18 +2379,18 @@ public class Interpret {
                     }
                 }
 
-// </editor-fold>                
+// </editor-fold>
             }
             else if (select.STAR()) { // * | alias.*
                 // <editor-fold defaultstate="collapsed" desc=" STAR ">
                 if (select.ALIAS() == null) {
-                    tmp.addAll(_langContext.get(_depth).result);                    
+                    tmp.addAll(_langContext.get(_depth).result);
                 } else {
                     String alias = select.ALIAS();
                     boolean found = false;
                     for (int i = _depth; i >= 0; i--) {
                         if (_langContext.get(i).mapAS.containsKey(alias)) {
-                            tmp.addAll(_langContext.get(i).mapAS.get(alias));                            
+                            tmp.addAll(_langContext.get(i).mapAS.get(alias));
                             found = true;
                             break;
                         }
@@ -2411,25 +2408,25 @@ public class Interpret {
         if (!_langContext.get(_depth).selectListInner.isEmpty()) {
             tmp.addAll(_langContext.get(_depth).selectListInner);
         }
-        
+
         if(ctx.isUnique()){
             removeReduntant(tmp);
-        }        
+        }
         _langContext.get(_depth).result = tmp;
-        
+
         if (_depth == 0) {
             _result = _langContext.get(_depth).result;
-        }        
+        }
     }
-        
-    public void enterSelectStatment(SelectStatmentContext ctx) {        
+
+    public void enterSelectStatment(SelectStatmentContext ctx) {
         if(_langContext.size() > 0 && _langContext.size() > _depth) {
             for(int i = _langContext.size() - 1 ; i >= _depth; i--) {
                 _langContext.remove(i);
             }
             //_langContext.remove(_depth);
-        }         
-        _langContext.add(new LangContext());        
+        }
+        _langContext.add(new LangContext());
     }
 
     private List<ClassEntity> callInterface(Iterable<ClassEntity> inClassRelated, MethodEntity inMethodRelated) {
@@ -2455,7 +2452,7 @@ public class Interpret {
     }
 
     private void removeReduntant(List<ClassEntity> tmp) {
-        List<ClassEntity> result= new ArrayList();       
+        List<ClassEntity> result= new ArrayList();
         for(ClassEntity ce:tmp) {
             boolean contain =false;
             for(ClassEntity cr:result) {
@@ -2472,37 +2469,37 @@ public class Interpret {
     }
 
 // </editor-fold>
-    
+
     // <editor-fold defaultstate="collapsed" desc=" HelpClass ">
     public class ErrorMessage {
 
-        public String message;        
+        public String message;
         public boolean isError;
-        
+
         public ErrorMessage(String m, boolean e) {
-            message = m;            
+            message = m;
             isError = e;
         }
-        
+
         @Override
         public String toString() {
             return (isError ? "Error: " : "Warning: ") + message;
         }
-        
-    }    
-    
+
+    }
+
     public class LangContext {
 
-        private List<ClassEntity> result;        
+        private List<ClassEntity> result;
         private List<ParamNameContext> selectListCtx;
         private List<ClassEntity> selectListInner;
         private boolean _SELECT;
         private boolean _FROM;
         private boolean _WHERE;
         Map<String, List<ClassEntity>> mapAS;
-        
+
         LangContext() {
-            result = new ArrayList();    
+            result = new ArrayList();
             selectListCtx = new ArrayList();
             selectListInner = new ArrayList();
             mapAS = new TreeMap<String, List<ClassEntity>>();
@@ -2510,7 +2507,7 @@ public class Interpret {
             _FROM = false;
             _WHERE = false;
         }
-    }    
+    }
 
 // </editor-fold>
 }

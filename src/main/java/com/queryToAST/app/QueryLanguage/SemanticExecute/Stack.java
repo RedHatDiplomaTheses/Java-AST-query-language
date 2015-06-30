@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.queryToAST.app.QueryLanguage.SemanticExecute;
 
 import com.queryToAST.app.Graph.GraphContext.GraphContext;
@@ -19,108 +14,110 @@ public class Stack {
     private List<Command> Stack;
     private int count;
     private GraphContext ctx;
-    
+
     public Stack() {
         count = 0;
         this.Stack = new ArrayList();
     }
-    
-    
+
+
     public void setGraphContext(GraphContext _graphContext) {
         this.ctx = _graphContext;
     }
-    
+
     public void add(KeyCommand name,IContext ctx) {
         Stack.add(new Command(count++, name, ctx));
     }
-    
+
+
+    // Separate from the Stack into StackRunner - only have the data in the stack.
     public List<ClassEntity> run() {
-        Interpret exe = new Interpret();
-        exe.setContext(ctx);        
+        Interpret interpret = new Interpret();
+        interpret.setContext(ctx);
         for(Command com:Stack) {
-            switch(com.getComand()) {                
+            switch(com.getComand()) {
                 case enterCond:
-                    exe.enterCond((CondContext) com.getCtx());
+                    interpret.enterCond((CondContext) com.getCtx());
                     break;
                 case enterConditions:
-                    exe.enterConditions((ConditionsContext) com.getCtx());
+                    interpret.enterConditions((ConditionsContext) com.getCtx());
                     break;
                 case enterEqual:
-                    exe.enterEqual((EqualContext) com.getCtx());
+                    interpret.enterEqual((EqualContext) com.getCtx());
                     break;
                 case enterInnerSelect:
-                    exe.enterInnerSelect((InnerSelectContext) com.getCtx());
+                    interpret.enterInnerSelect((InnerSelectContext) com.getCtx());
                     break;
                 case enterPackageLink:
-                    exe.enterPackageLink((PackageLinkContext) com.getCtx());
+                    interpret.enterPackageLink((PackageLinkContext) com.getCtx());
                     break;
                 case enterPackageName:
-                    exe.enterPackageName((PackageNameContext) com.getCtx());
+                    interpret.enterPackageName((PackageNameContext) com.getCtx());
                     break;
                 case enterPackages:
-                    exe.enterPackages((PackagesContext) com.getCtx());
+                    interpret.enterPackages((PackagesContext) com.getCtx());
                     break;
                 case enterParamName:
-                    exe.enterParamName((ParamNameContext) com.getCtx());
+                    interpret.enterParamName((ParamNameContext) com.getCtx());
                     break;
                 case enterParamSelect:
-                    exe.enterParamSelect((ParamSelectContext) com.getCtx());
+                    interpret.enterParamSelect((ParamSelectContext) com.getCtx());
                     break;
                 case enterRightStatment:
-                    exe.enterRightStatment((RightStatmentContext) com.getCtx());
+                    interpret.enterRightStatment((RightStatmentContext) com.getCtx());
                     break;
                 case enterSelectStatment:
-                    exe.enterSelectStatment((SelectStatmentContext) com.getCtx());
+                    interpret.enterSelectStatment((SelectStatmentContext) com.getCtx());
                     break;
                 //----
                 //exit
                 //----
                 case exitAlias:
-                    exe.exitAlias((AliasContext) com.getCtx());
+                    interpret.exitAlias((AliasContext) com.getCtx());
                     break;
                 case exitAnnotated:
-                    exe.exitAnnotated((AnnotatedContext) com.getCtx());
+                    interpret.exitAnnotated((AnnotatedContext) com.getCtx());
                     break;
                 case exitAs:
-                    exe.exitAs((AsContext) com.getCtx());
+                    interpret.exitAs((AsContext) com.getCtx());
                     break;
                 case exitCond:
-                    exe.exitCond((CondContext) com.getCtx());
+                    interpret.exitCond((CondContext) com.getCtx());
                     break;
                 case exitEqual:
-                    exe.exitEqual((EqualContext) com.getCtx());
+                    interpret.exitEqual((EqualContext) com.getCtx());
                     break;
                 case exitIndex:
-                    exe.exitIndex((IndexContext) com.getCtx());
+                    interpret.exitIndex((IndexContext) com.getCtx());
                     break;
                 case exitInnerSelect:
-                    exe.exitInnerSelect((InnerSelectContext) com.getCtx());
+                    interpret.exitInnerSelect((InnerSelectContext) com.getCtx());
                     break;
                 case exitPackageLink:
-                    exe.exitPackageLink((PackageLinkContext) com.getCtx());
+                    interpret.exitPackageLink((PackageLinkContext) com.getCtx());
                     break;
                 case exitPackageName:
-                    exe.exitPackageName((PackageNameContext) com.getCtx());
+                    interpret.exitPackageName((PackageNameContext) com.getCtx());
                     break;
                 case exitPackages:
-                    exe.exitPackages((PackagesContext) com.getCtx());
+                    interpret.exitPackages((PackagesContext) com.getCtx());
                     break;
                 case exitParamName:
-                    exe.exitParamName((ParamNameContext) com.getCtx());
+                    interpret.exitParamName((ParamNameContext) com.getCtx());
                     break;
                 case exitSelectStatment:
-                    exe.exitSelectStatment((SelectStatmentContext) com.getCtx());
+                    interpret.exitSelectStatment((SelectStatmentContext) com.getCtx());
                     break;
                 default:
-                    System.out.println("Error: Neznámí prikaz vnitøní chyba aplikace -> 'Stack.class'");
+                    System.out.println("Error: Neznámý prikaz vnitøní chyba aplikace -> 'Stack.class'");
                     break;
             }
         }
-        if(exe.isError()){
-            exe.printErr();
+        if(interpret.isError()){
+            interpret.printErr();
             return null;
         }
-        return exe.getResult();
+        return interpret.getResult();
     }
 }
 
@@ -139,28 +136,28 @@ enum KeyCommand {
 // <editor-fold defaultstate="collapsed" desc=" Command ">
 class Command {
 
-    private int count;    
+    private int count;
     private KeyCommand comand;
     private IContext ctx;
-    
+
     public Command(int count, KeyCommand comand, IContext ctx) {
         this.count = count;
         this.comand = comand;
         this.ctx = ctx;
     }
-    
+
     public int getCount() {
         return count;
     }
-    
+
     public KeyCommand getComand() {
         return comand;
     }
-    
+
     public IContext getCtx() {
         return ctx;
     }
-    
+
 }
 
 // </editor-fold>

@@ -1,13 +1,7 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.queryToAST.app.Metadata;
 
-
-
 import com.queryToAST.app.Graph.GraphContext.GraphContext;
-import com.queryToAST.app.API.Setting;
+import com.queryToAST.app.exec.Setting;
 import com.strobel.assembler.metadata.JarTypeLoader;
 import com.strobel.core.StringUtilities;
 import com.strobel.decompiler.DecompilerSettings;
@@ -17,27 +11,22 @@ import java.io.IOException;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-
-
 
 /**
  *
  * @author Niriel
  */
-public class JarMetadata {
+public class JarDecompilerAndAstProcessor
+{
     private Setting _settings = null;
     private GraphContext _graphContext = null;
     private boolean load = false;
     private boolean error = false;
-    
-    public JarMetadata(String _internalName, GraphContext graphContext) {        
+
+    public JarDecompilerAndAstProcessor(String _internalName, GraphContext graphContext) {
         _graphContext = graphContext;
         _settings = new Setting(_internalName,null);
         _settings.setMetadata(true);
-        execute();
     }
 
 
@@ -46,7 +35,7 @@ public class JarMetadata {
      * @return
      * @throws IOException
      */
-    private void execute() {        
+    public void process(String singleClassName) {
         DecompilerSettings settings = DecompilerSettings.javaDefaults();
         settings.setLanguage(Languages.bytecode()); //metadata
         //settings.setLanguage(Languages.java()); // plna dekompilace a AST
@@ -64,37 +53,37 @@ public class JarMetadata {
             error = true;
             return;
         }
-        final Enumeration<JarEntry> entries = jar.entries();
+        final Enumeration<JarEntry> jarEntries = jar.entries();
         settings.setShowSyntheticMembers(false);
         settings.setTypeLoader(new JarTypeLoader(jar));
         this._settings.setSettings(settings);
         _graphContext.setName(jar.getName());
-                
-        try {            
-            while (entries.hasMoreElements()) {
-                final JarEntry entry = entries.nextElement();
+
+        try {
+            while (jarEntries.hasMoreElements()) {
+                final JarEntry entry = jarEntries.nextElement();
                 final String name = entry.getName();
                 if (!name.endsWith(".class")) {
                     continue;
-                }                    
-                
+                }
+
                 final String internalName = StringUtilities.removeRight(name, ".class");
                 this._settings.setInternalName(internalName);
-                
-//                if(!internalName.contains("Normal"))
-//                    continue;
-                //if(internalName.compareTo("langTest/One/imp/Classes2") != 0)
-                  //  continue;
-                ClassMetadata meta = new ClassMetadata(_settings);
-                _graphContext.CreateClassMetadata(meta.getMetadata());                              
+
+                // Only for debugging! Performs badly.
+                if( singleClassName != null && !internalName.contains(singleClassName))
+                    continue;
+
+                // TODO: Separate ClassDecompiler and ClassMetadata
+                ClassDecompiler meta = new ClassDecompiler(_settings);
+                _graphContext.createClassMetadata(meta.getMetadata());
             }
-            
         }
         finally {
-         //System.out.println("Doplnit hlaseni pøekladu JarMetadata");
+            //System.out.println("Doplnit hlaseni pøekladu JarDecompilerAndAstProcessor");
         }
     }
-    
+
     public boolean isError(){
         return error;
     }

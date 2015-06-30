@@ -1,10 +1,6 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-package com.queryToAST.app.Core;
+package com.queryToAST.app.util;
 
-import com.queryToAST.app.API.Setting;
+import com.queryToAST.app.exec.Setting;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -12,12 +8,12 @@ import java.io.OutputStream;
  *
  * @author Niriel
  */
-public abstract class ProcessingData {    
-    protected OutputStream _outputVar;         
+public abstract class AlternativeOutput {
+    protected OutputStream _outputVar;
     protected String _internalName;
     protected String _outputFile;
-    
-    public ProcessingData(Setting settings) {
+
+    public AlternativeOutput(Setting settings) {
         _internalName = settings.getInternalName();
         _outputFile = settings.getOutput();
         this._outputVar = new OutputStream() {
@@ -25,16 +21,16 @@ public abstract class ProcessingData {
                 @Override
                 public void write(int b) throws IOException {
                    this.string.append((char) b );
-                }                
+                }
                 @Override
                 public String toString(){
                    return this.string.toString();
                 }
             };
     }
-     
+
      public String getOut() {
-        
+
         return _outputVar.toString();
-    }    
+    }
 }
